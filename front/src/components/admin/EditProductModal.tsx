@@ -31,14 +31,9 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[95vh] overflow-auto">
-        <DialogHeader>
-          <DialogTitle>Editar Producto</DialogTitle>
-          <p className="text-sm text-gray-500">Modifica la información del producto</p>
-        </DialogHeader>
+  <ProductEditForm product={product} onCancel={onClose} />
+</DialogContent>
 
-        {/* Solo renderiza el formulario si hay un producto seleccionado */}
-        {product && <ProductEditForm product={product} />}
-      </DialogContent>
     </Dialog>
   );
 };

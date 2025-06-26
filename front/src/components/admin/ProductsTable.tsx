@@ -28,7 +28,7 @@ export const ProductsTable = () => {
     {
       id: 1,
       name: 'Collar Premium para Perros',
-      category: 'Perros',
+      category: 'Accesorios',
       price: 'S/.15.99',
       stock: 45,
       status: 'Activo',
@@ -37,7 +37,7 @@ export const ProductsTable = () => {
     {
       id: 2,
       name: 'Comida Gourmet para Gatos',
-      category: 'Gatos',
+      category: 'Alimento',
       price: 'S/.24.99',
       stock: 23,
       status: 'Activo',
@@ -46,7 +46,7 @@ export const ProductsTable = () => {
     {
       id: 3,
       name: 'Juguete Interactivo',
-      category: 'Perros',
+      category: 'Jueguetes',
       price: 'S/.12.50',
       stock: 0,
       status: 'Sin Stock',
@@ -64,7 +64,7 @@ export const ProductsTable = () => {
     {
       id: 5,
       name: 'Acuario Decorativo',
-      category: 'Peces',
+      category: 'Accesorios',
       price: 'S/.89.99',
       stock: 12,
       status: 'Activo',

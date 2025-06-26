@@ -28,9 +28,9 @@ import {
   Edit,
   Trash2
 } from 'lucide-react';
-import { AdminSidebar } from '@/components/AdminSidebar';
-import { ProductsTable } from '@/components/ProductsTable';
-import { OrdersTable } from '@/components/OrdersTable';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { ProductsTable } from '@/components/admin/ProductsTable';
+import { OrdersTable } from '@/components/admin/OrdersTable';
 
 const AdminDashboard = () => {
   // Sample data for charts

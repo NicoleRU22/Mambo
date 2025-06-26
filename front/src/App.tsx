@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Catalog from "./pages/Catalog";
 import Contact from "./pages/Contact";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./components/admin/AdminDashboard";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";

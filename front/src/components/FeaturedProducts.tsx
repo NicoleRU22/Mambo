@@ -4,10 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Heart } from 'lucide-react';
 
+import { useNavigate } from "react-router-dom";
+
 const FeaturedProducts = () => {
+  const navigate = useNavigate();
+
   const products = [
     {
-      id: 1,
+      id: 7,
       name: 'Alimento Premium para Perros',
       brand: 'Royal Canin',
       price: 45.99,
@@ -19,7 +23,7 @@ const FeaturedProducts = () => {
       badge: 'Más Vendido'
     },
     {
-      id: 2,
+      id: 8,
       name: 'Casa para Gatos Moderna',
       brand: 'PetHome',
       price: 89.99,
@@ -31,7 +35,7 @@ const FeaturedProducts = () => {
       badge: 'Nuevo'
     },
     {
-      id: 3,
+      id: 9,
       name: 'Juguete Interactivo para Perros',
       brand: 'FunPet',
       price: 24.99,
@@ -43,7 +47,7 @@ const FeaturedProducts = () => {
       badge: 'Recomendado'
     },
     {
-      id: 4,
+      id: 10,
       name: 'Acuario Completo 40L',
       brand: 'AquaLife',
       price: 129.99,
@@ -81,11 +85,13 @@ const FeaturedProducts = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product, index) => (
+  
             <Card 
-              key={product.id}
-              className="group cursor-pointer border border-gray-200 hover:border-primary-300 hover:shadow-lg transition-all duration-300 animate-fade-in overflow-hidden"
-              style={{animationDelay: `${index * 100}ms`}}
-            >
+            key={product.id}
+            onClick={() => navigate(`/product/${product.id}`)}
+            className="group cursor-pointer border border-gray-200 hover:border-primary-300 hover:shadow-lg transition-all duration-300 animate-fade-in overflow-hidden"
+            style={{animationDelay: `${index * 100}ms`}}
+             >
               <CardContent className="p-0">
                 <div className="relative">
                   <img
@@ -115,12 +121,30 @@ const FeaturedProducts = () => {
 
                   {/* Hover buttons */}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-2">
-                    <Button size="sm" variant="secondary" className="h-10 w-10 p-0">
-                      <Heart className="h-4 w-4" />
+                    <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-10 w-10 p-0"
+                    onClick={(e) => {
+                    e.stopPropagation();
+                      // Aquí iría la lógica para agregar a favoritos
+                    console.log("Producto agregado a favoritos");
+                      }}
+                     >
+                     <Heart className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" className="bg-primary-600 hover:bg-primary-700 text-white px-4">
+
+                    <Button
+                      size="sm"
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-4"
+                      onClick={(e) => {
+                      e.stopPropagation(); 
+                      // Aquí iría tu lógica real para agregar al carrito
+                      console.log("Producto agregado al carrito");
+                       }}
+                        >
                       <ShoppingCart className="h-4 w-4 mr-2" />
-                      Agregar
+                       Agregar
                     </Button>
                   </div>
                 </div>

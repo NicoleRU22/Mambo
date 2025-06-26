@@ -22,7 +22,7 @@ export const AdminSidebar = () => {
   ];
 
   return (
-    <div className="w-64 bg-white shadow-lg border-r">
+<div className="relative w-64 bg-white shadow-lg border-r flex flex-col h-screen">
       <div className="p-6 border-b">
         <div className="flex items-center space-x-2">
           <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary-600">

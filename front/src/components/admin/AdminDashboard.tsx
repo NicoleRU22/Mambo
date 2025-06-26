@@ -44,10 +44,10 @@ const AdminDashboard = () => {
   ];
 
   const categoryData = [
-    { name: 'Perros', value: 400, color: '#8B5CF6' },
-    { name: 'Gatos', value: 300, color: '#06B6D4' },
-    { name: 'Aves', value: 200, color: '#10B981' },
-    { name: 'Peces', value: 100, color: '#F59E0B' },
+    { name: 'Ropas', value: 400, color: '#8B5CF6' },
+    { name: 'Juguetes', value: 300, color: '#06B6D4' },
+    { name: 'Alimento', value: 200, color: '#10B981' },
+    { name: 'Accesorios', value: 100, color: '#F59E0B' },
   ];
 
   const stats = [

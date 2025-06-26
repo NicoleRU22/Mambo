@@ -15,13 +15,6 @@ Mambo PetShop es una tienda en línea especializada en productos para mascotas. 
 - Procesamiento de pagos en línea.
 - Opciones de filtrado por categoría, precio, etc.
 
-### Características principales:
-
-- Catálogo de productos actualizado.
-- Sistema de carrito de compras.
-- Procesamiento de pagos en línea.
-- Opciones de filtrado por categoría, precio, etc.
-
 ## Tecnologías Usadas
 
 Este proyecto utiliza las siguientes tecnologías:

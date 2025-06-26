@@ -7,6 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Search, Filter, Star, ShoppingCart, Heart } from 'lucide-react';
+{/**T */}
+import { useNavigate } from "react-router-dom";
+
 
 const Catalog = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,6 +100,10 @@ const Catalog = () => {
     );
   });
 
+  {/**T */}
+  const navigate = useNavigate();
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -184,51 +191,73 @@ const Catalog = () => {
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
-            <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-300">
-              <div className="relative">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-64 object-cover rounded-t-lg"
-                />
-                {product.originalPrice && (
-                  <span className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                    -30%
-                  </span>
-                )}
-                <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
-                </button>
-              </div>
-              
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
-                
-                <div className="flex items-center space-x-1 mb-2">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm text-gray-600">{product.rating}</span>
-                  <span className="text-sm text-gray-400">({product.reviews})</span>
-                </div>
+            //T
+            <Card
+    key={product.id}
+    onClick={() => navigate(`/product/${product.id}`)} // 👈 redirecciona al detalle
+    className="group hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+  >
+    <div className="relative">
+      <img
+        src={product.image}
+        alt={product.name}
+        className="w-full h-64 object-cover rounded-t-lg"
+      />
+      {product.originalPrice && (
+        <span className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+          -30%
+        </span>
+      )}
+      <button
+       onClick={(e) => {
+       e.stopPropagation();
+       // Aquí podrías agregar lógica adicional como mostrar un toast o marcar favorito
+       console.log("Producto marcado como favorito");
+       }}
+       className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+       <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+      </button>
 
-                <div className="flex items-center space-x-2 mb-3">
-                  <span className="text-lg font-bold text-primary-600">S/.{product.price}</span>
-                  {product.originalPrice && (
-                    <span className="text-sm text-gray-400 line-through">S/.{product.originalPrice}</span>
-                  )}
-                </div>
+    </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-gray-500">
-                    Tallas: {product.sizes.join(', ')}
-                  </div>
-                  <Button size="sm" className="bg-primary-600 hover:bg-primary-700">
-                    <ShoppingCart className="h-4 w-4 mr-1" />
-                    Agregar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+    <CardContent className="p-4">
+      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
+
+      <div className="flex items-center space-x-1 mb-2">
+        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+        <span className="text-sm text-gray-600">{product.rating}</span>
+        <span className="text-sm text-gray-400">({product.reviews})</span>
+      </div>
+
+      <div className="flex items-center space-x-2 mb-3">
+        <span className="text-lg font-bold text-primary-600">S/.{product.price}</span>
+        {product.originalPrice && (
+          <span className="text-sm text-gray-400 line-through">S/.{product.originalPrice}</span>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="text-xs text-gray-500">
+          Tallas: {product.sizes.join(', ')}
+        </div>
+        <Button 
+        size="sm" 
+        className="bg-primary-600 hover:bg-primary-700"
+        onClick={(e) => {
+        e.stopPropagation(); 
+       // Aquí iría la lógica real para agregar al carrito
+        console.log("Producto agregado al carrito desde catálogo");
+        }}
+        >
+        <ShoppingCart className="h-4 w-4 mr-1" />
+        Agregar
+       </Button>
+
+      </div>
+    </CardContent>
+  </Card>
+))}
         </div>
 
         {/* Load More */}
@@ -237,6 +266,8 @@ const Catalog = () => {
             Cargar más productos
           </Button>
         </div>
+
+        
       </main>
 
       <Footer />

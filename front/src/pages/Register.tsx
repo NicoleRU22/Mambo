@@ -176,11 +176,19 @@ const Register = () => {
                 <input type="checkbox" id="terms" className="rounded mt-1" required />
                 <Label htmlFor="terms" className="text-sm text-gray-600 leading-tight">
                   Acepto los{' '}
-                  <Button variant="link" className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm">
+                  <Button
+                    variant="link"
+                    className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm"
+                    onClick={() => navigate('/terms-and-conditions')}  // Redirige a términos y condiciones
+                  >
                     términos y condiciones
                   </Button>{' '}
                   y la{' '}
-                  <Button variant="link" className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm">
+                  <Button
+                    variant="link"
+                    className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm"
+                    onClick={() => navigate('/privacy-policy')}  // Redirige a política de privacidad
+                  >
                     política de privacidad
                   </Button>
                 </Label>

@@ -18,10 +18,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Search, Plus, Edit, Trash2, Eye, MoreHorizontal } from 'lucide-react';
-import { EditProductModal } from './EditProductModal'; // Asegúrate de importar correctamente
+import { EditProductModal } from './EditProductModal';
+import { AddProductModal } from './AddProductModal'; // 👈 Asegúrate de importar esto correctamente
 
 export const ProductsTable = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // 👈 Nuevo estado para agregar producto
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
 
   const products = [
@@ -93,7 +95,10 @@ export const ProductsTable = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Gestión de Productos</CardTitle>
-            <Button className="bg-primary-600 hover:bg-primary-700">
+            <Button
+              className="bg-primary-600 hover:bg-primary-700"
+              onClick={() => setIsAddModalOpen(true)} // 👈 Abre modal al hacer clic
+            >
               <Plus className="h-4 w-4 mr-2" />
               Agregar Producto
             </Button>
@@ -177,6 +182,12 @@ export const ProductsTable = () => {
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         product={selectedProduct}
+      />
+
+      {/* Modal para agregar producto */}
+      <AddProductModal
+        open={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
       />
     </>
   );

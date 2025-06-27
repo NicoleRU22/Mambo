@@ -5,21 +5,31 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
-interface ProductEditFormProps {
-  product: {
-    id: number;
-    name: string;
-    category: string;
-    price: string;
-    stock: number;
-    status: string;
-    image: string;
-  };
-  onCancel: () => void;
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  price: string;
+  stock: number;
+  status: string;
+  image: string;
 }
 
-export const ProductEditForm: React.FC<ProductEditFormProps> = ({ product, onCancel }) => {
+interface ProductEditFormProps {
+  product: Product;
+  onCancel: () => void;
+  onSave: (updatedProduct: Product) => void;
+}
+
+export const ProductEditForm: React.FC<ProductEditFormProps> = ({ product, onCancel, onSave }) => {
+  const [name, setName] = useState<string>(product.name);
+  const [category, setCategory] = useState<string>(product.category);
+  const [price, setPrice] = useState<string>(product.price.replace('S/.', '').trim());
+  const [stock, setStock] = useState<number>(product.stock);
+  const [status, setStatus] = useState<string>(product.status);
+  const [description, setDescription] = useState<string>('');
   const [imageSource, setImageSource] = useState<'file' | 'url'>('file');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string>(product.image);
@@ -38,6 +48,24 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({ product, onCan
     }
   }, [imageFile, imageUrl, imageSource]);
 
+  useEffect(() => {
+    if (stock === 0) {
+      setStatus('Sin Stock');
+    } else if (stock < 10) {
+      setStatus('Stock Bajo');
+    } else {
+      setStatus('Activo');
+    }
+  }, [stock]);
+
+  const isFormValid =
+    name.trim() !== '' &&
+    category.trim() !== '' &&
+    price.trim() !== '' &&
+    !isNaN(Number(price)) &&
+    stock >= 0 &&
+    preview.trim() !== '';
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -47,6 +75,18 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({ product, onCan
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageUrl(e.target.value);
+  };
+
+  const handleSave = () => {
+    onSave({
+      id: product.id,
+      name,
+      category,
+      price: `S/.${parseFloat(price).toFixed(2)}`,
+      stock,
+      status,
+      image: preview,
+    });
   };
 
   return (
@@ -62,12 +102,17 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({ product, onCan
           <div className="md:col-span-2 space-y-4">
             <div>
               <Label htmlFor="name">Nombre del producto</Label>
-              <Input id="name" defaultValue={product.name} />
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
 
             <div>
               <Label htmlFor="description">Descripción</Label>
-              <Textarea id="description" placeholder="Describe brevemente el producto" />
+              <Textarea
+                id="description"
+                placeholder="Describe brevemente el producto"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -76,18 +121,33 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({ product, onCan
                 <Input
                   id="price"
                   type="number"
-                  defaultValue={parseFloat(product.price.replace('S/.', '').trim())}
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
                 />
               </div>
               <div>
                 <Label htmlFor="stock">Stock</Label>
-                <Input id="stock" type="number" defaultValue={product.stock} />
+                <Input
+                  id="stock"
+                  type="number"
+                  value={stock}
+                  onChange={(e) => setStock(Number(e.target.value))}
+                />
               </div>
             </div>
 
             <div>
               <Label htmlFor="category">Categoría</Label>
-              <Input id="category" defaultValue={product.category} />
+              <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} />
+            </div>
+
+            <div>
+              <Label htmlFor="status">Estado</Label>
+              <div className="mt-1">
+                {status === 'Sin Stock' && <Badge variant="destructive">Sin Stock</Badge>}
+                {status === 'Stock Bajo' && <Badge className="bg-yellow-500">Stock Bajo</Badge>}
+                {status === 'Activo' && <Badge className="bg-green-500">Activo</Badge>}
+              </div>
             </div>
           </div>
 
@@ -189,7 +249,11 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({ product, onCan
           <Button variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button className="bg-primary-600 hover:bg-primary-700 text-white">
+          <Button
+            className="bg-primary-600 hover:bg-primary-700 text-white"
+            onClick={handleSave}
+            disabled={!isFormValid}
+          >
             Actualizar Producto
           </Button>
         </div>
@@ -197,3 +261,4 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({ product, onCan
     </Card>
   );
 };
+

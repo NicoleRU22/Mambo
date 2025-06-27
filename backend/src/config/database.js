@@ -41,4 +41,6 @@ module.exports = {
   getConnection,
   testConnection,
   closeConnection
+
 };
+

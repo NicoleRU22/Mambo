@@ -8,8 +8,9 @@ import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false); // Estado para "Recordarme"
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -17,7 +18,6 @@ const Login = () => {
     console.log("Login attempt:", { email, password });
     navigate("/");
   };
-
 
   const isFormValid = () => {
     return email && password; // Verificar si los campos de correo y contraseña no están vacíos
@@ -110,8 +110,16 @@ const Login = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <input type="checkbox" id="remember" className="rounded" />
-                  <Label htmlFor="remember" className="text-sm text-gray-600">Recordarme</Label>
+                  <input
+                    type="checkbox"
+                    id="remember"
+                    className="rounded"
+                    checked={rememberMe}
+                    onChange={() => setRememberMe(!rememberMe)} // Cambio de estado para "Recordarme"
+                  />
+                  <Label htmlFor="remember" className="text-sm text-gray-600">
+                    Recordarme
+                  </Label>
                 </div>
                 <Button
                   variant="link"
@@ -124,6 +132,7 @@ const Login = () => {
               <Button
                 type="submit"
                 className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg transition duration-200"
+                disabled={!isFormValid()} // Deshabilitar el botón si el formulario no es válido
               >
                 Iniciar Sesión
               </Button>

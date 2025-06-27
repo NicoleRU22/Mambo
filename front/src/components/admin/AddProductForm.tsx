@@ -109,7 +109,7 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="price">Precio</Label>
+                <Label htmlFor="price">Precio (S/.)</Label>
                 <Input id="price" type="number" value={formData.price} onChange={handleChange} />
               </div>
               <div>

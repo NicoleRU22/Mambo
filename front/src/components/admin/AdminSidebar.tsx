@@ -1,28 +1,34 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  BarChart3, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  BarChart3,
+  Settings,
   LogOut,
+  FileText,
 } from 'lucide-react';
 
-export const AdminSidebar = () => {
+interface SidebarProps {
+  activeSection: string;
+  setActiveSection: (section: string) => void;
+}
+
+export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) => {
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', active: true },
+    { icon: LayoutDashboard, label: 'Dashboard' },
     { icon: Package, label: 'Productos' },
     { icon: ShoppingCart, label: 'Pedidos' },
     { icon: Users, label: 'Clientes' },
     { icon: BarChart3, label: 'Reportes' },
+    { icon: FileText, label: 'Blog' },
     { icon: Settings, label: 'Configuración' },
   ];
 
   return (
-<div className="relative w-64 bg-white shadow-lg border-r flex flex-col h-screen">
+    <div className="relative w-64 bg-white shadow-lg border-r flex flex-col h-screen">
       <div className="p-6 border-b">
         <div className="flex items-center space-x-2">
           <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary-600">
@@ -43,10 +49,11 @@ export const AdminSidebar = () => {
         {menuItems.map((item, index) => (
           <Button
             key={index}
-            variant={item.active ? "default" : "ghost"}
+            onClick={() => setActiveSection(item.label)}
+            variant={item.label === activeSection ? 'default' : 'ghost'}
             className={`w-full justify-start ${
-              item.active 
-                ? 'bg-primary-600 text-white hover:bg-primary-700' 
+              item.label === activeSection
+                ? 'bg-primary-600 text-white hover:bg-primary-700'
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
           >

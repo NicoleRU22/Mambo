@@ -244,7 +244,8 @@ const Register = () => {
                   <Button
                     variant="link"
                     className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm"
-                    onClick={() => navigate('/privacy-policy')}
+                    onClick={() => navigate("/privacy-policy")}
+>>>>>>>>> Temporary merge branch 2
                   >
                     política de privacidad
                   </Button>

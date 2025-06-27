@@ -15,7 +15,7 @@ const TermsAndConditions = () => {
           onClick={() => navigate('/register')}  // Redirige a la página de registro
           className="mb-6 text-white hover:text-gray-900 transition-colors duration-300"
         >
-          Volver a Registrarse
+          Volver 
         </Button>
 
         <Card className="shadow-lg rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105">

@@ -41,4 +41,8 @@ module.exports = {
   getConnection,
   testConnection,
   closeConnection
+<<<<<<<<< Temporary merge branch 1
 };
+=========
+}; 
+>>>>>>>>> Temporary merge branch 2

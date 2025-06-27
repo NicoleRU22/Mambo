@@ -18,9 +18,6 @@ const Login = () => {
     navigate("/");
   };
 
-  const isFormValid = () => {
-    return email && password; // Verificar si los campos de correo y contraseña no están vacíos
-  };
 
   const isFormValid = () => {
     return email && password; // Verificar si los campos de correo y contraseña no están vacíos

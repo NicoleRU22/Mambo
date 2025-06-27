@@ -72,7 +72,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({ product, onCan
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="price">Precio</Label>
+                <Label htmlFor="price">Precio (S/.)</Label>
                 <Input
                   id="price"
                   type="number"

@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,24 +14,31 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Search, Plus, Edit, Trash2, Eye, MoreHorizontal } from 'lucide-react';
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  MoreHorizontal
+} from 'lucide-react';
+
 import { EditProductModal } from './EditProductModal';
-import { AddProductModal } from './AddProductModal'; // 👈 Asegúrate de importar esto correctamente
+import { AddProductModal } from './AddProductModal';
 
 export const ProductsTable = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // 👈 Nuevo estado para agregar producto
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
-
-  const products = [
+  const [products, setProducts] = useState([
     {
       id: 1,
       name: 'Collar Premium para Perros',
@@ -53,40 +65,26 @@ export const ProductsTable = () => {
       stock: 0,
       status: 'Sin Stock',
       image: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?auto=format&fit=crop&w=100&q=80'
-    },
-    {
-      id: 4,
-      name: 'Arena Sanitaria Premium',
-      category: 'Gatos',
-      price: 'S/.18.75',
-      stock: 67,
-      status: 'Activo',
-      image: 'https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?auto=format&fit=crop&w=100&q=80'
-    },
-    {
-      id: 5,
-      name: 'Acuario Decorativo',
-      category: 'Accesorios',
-      price: 'S/.89.99',
-      stock: 12,
-      status: 'Activo',
-      image: 'https://images.unsplash.com/photo-1520637836862-4d197d17c92a?auto=format&fit=crop&w=100&q=80'
     }
-  ];
-
-  const getStatusBadge = (stock: number) => {
-    if (stock === 0) {
-      return <Badge variant="destructive">Sin Stock</Badge>;
-    }
-    if (stock < 10) {
-      return <Badge className="bg-yellow-500">Stock Bajo</Badge>;
-    }
-    return <Badge className="bg-green-500">Activo</Badge>;
-  };
+  ]);
 
   const handleEditClick = (product: any) => {
     setSelectedProduct(product);
     setIsEditModalOpen(true);
+  };
+
+  const handleUpdateProduct = (updatedProduct: any) => {
+    const updatedList = products.map((p) =>
+      p.id === updatedProduct.id ? updatedProduct : p
+    );
+    setProducts(updatedList);
+    setIsEditModalOpen(false);
+  };
+
+  const getStatusBadge = (stock: number) => {
+    if (stock === 0) return <Badge variant="destructive">Sin Stock</Badge>;
+    if (stock < 10) return <Badge className="bg-yellow-500">Stock Bajo</Badge>;
+    return <Badge className="bg-green-500">Activo</Badge>;
   };
 
   return (
@@ -97,7 +95,7 @@ export const ProductsTable = () => {
             <CardTitle>Gestión de Productos</CardTitle>
             <Button
               className="bg-primary-600 hover:bg-primary-700"
-              onClick={() => setIsAddModalOpen(true)} // 👈 Abre modal al hacer clic
+              onClick={() => setIsAddModalOpen(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
               Agregar Producto
@@ -147,7 +145,6 @@ export const ProductsTable = () => {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menú</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -162,7 +159,7 @@ export const ProductsTable = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => console.log('Eliminar', product.id)}
-                          className="text-red-600 focus:text-red-700"
+                          className="text-red-600"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Eliminar
@@ -182,6 +179,7 @@ export const ProductsTable = () => {
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         product={selectedProduct}
+        onUpdate={handleUpdateProduct}
       />
 
       {/* Modal para agregar producto */}
@@ -192,3 +190,4 @@ export const ProductsTable = () => {
     </>
   );
 };
+

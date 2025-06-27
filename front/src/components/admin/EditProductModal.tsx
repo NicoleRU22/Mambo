@@ -2,8 +2,6 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import { ProductEditForm } from './ProductEditForm';
 
@@ -21,19 +19,24 @@ interface EditProductModalProps {
   open: boolean;
   onClose: () => void;
   product: Product | null;
+  onUpdate: (updatedProduct: Product) => void;
 }
 
 export const EditProductModal: React.FC<EditProductModalProps> = ({
   open,
   onClose,
   product,
+  onUpdate,
 }) => {
+  if (!product) return null;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-auto">
-  <ProductEditForm product={product} onCancel={onClose} />
-</DialogContent>
-
+      <DialogContent
+        className="max-w-[95vw] md:max-w-5xl w-full max-h-[90vh] overflow-y-auto rounded-xl p-4"
+      >
+        <ProductEditForm product={product} onCancel={onClose} onSave={onUpdate} />
+      </DialogContent>
     </Dialog>
   );
 };

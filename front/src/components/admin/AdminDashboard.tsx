@@ -3,7 +3,7 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { ProductsTable } from '@/components/admin/ProductsTable';
 import { OrdersTable } from '@/components/admin/OrdersTable';
 import { AdminBlog } from '@/components/admin/AdminBlog';
-import { ClientesPanel} from '@/components/admin/ClientesPanel';
+import { ClientesPanel} from '@/components/admin/clientesPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {

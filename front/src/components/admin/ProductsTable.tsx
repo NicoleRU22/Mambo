@@ -38,6 +38,11 @@ export const ProductsTable = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterName, setFilterName] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
   const [products, setProducts] = useState([
     {
       id: 1,
@@ -87,11 +92,23 @@ export const ProductsTable = () => {
     return <Badge className="bg-green-500">Activo</Badge>;
   };
 
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(filterName.toLowerCase()) &&
+    product.category.toLowerCase().includes(filterCategory.toLowerCase()) &&
+    (filterStatus === '' || product.status === filterStatus)
+  );
+
+  const clearFilters = () => {
+    setFilterName('');
+    setFilterCategory('');
+    setFilterStatus('');
+  };
+
   return (
     <>
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <CardTitle>Gestión de Productos</CardTitle>
             <Button
               className="bg-primary-600 hover:bg-primary-700"
@@ -101,14 +118,46 @@ export const ProductsTable = () => {
               Agregar Producto
             </Button>
           </div>
-          <div className="flex space-x-4 mt-4">
+
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mt-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input placeholder="Buscar productos..." className="pl-10" />
+              <Input
+                placeholder="Buscar productos..."
+                className="pl-10"
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+              />
             </div>
-            <Button variant="outline">Filtros</Button>
+            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
+              {showFilters ? 'Ocultar Filtros' : 'Filtros'}
+            </Button>
           </div>
+
+          {showFilters && (
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input
+                placeholder="Filtrar por categoría"
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+              />
+              <select
+                className="border rounded px-3 py-2 text-sm"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="">Todos los estados</option>
+                <option value="Activo">Activo</option>
+                <option value="Sin Stock">Sin Stock</option>
+                <option value="Stock Bajo">Stock Bajo</option>
+              </select>
+              <Button variant="ghost" onClick={clearFilters}>
+                Limpiar filtros
+              </Button>
+            </div>
+          )}
         </CardHeader>
+
         <CardContent>
           <Table>
             <TableHeader>
@@ -122,7 +171,7 @@ export const ProductsTable = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
@@ -174,7 +223,6 @@ export const ProductsTable = () => {
         </CardContent>
       </Card>
 
-      {/* Modal de edición */}
       <EditProductModal
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -182,7 +230,6 @@ export const ProductsTable = () => {
         onUpdate={handleUpdateProduct}
       />
 
-      {/* Modal para agregar producto */}
       <AddProductModal
         open={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}

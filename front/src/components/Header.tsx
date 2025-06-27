@@ -122,10 +122,9 @@ const Header = () => {
             <div className="flex flex-col space-y-3">
               <a href="#" onClick={() => navigate('/')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Inicio</a>
               <a href="#" onClick={() => navigate('/catalog')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Catálogo</a>
-              <a href="#" onClick={() => navigate('/catalog?category=perros')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Perros</a>
-              <a href="#" onClick={() => navigate('/catalog?category=gatos')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Gatos</a>
-              <a href="#" onClick={() => navigate('/catalog?category=ofertas')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Ofertas</a>
-              <a href="#" className="text-gray-700 hover:text-primary-600 font-medium py-2">Blog</a>
+              <a href="#" onClick={() => navigate('/aboutus')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Nosotros</a>
+              <a href="#" onClick={() => navigate('/contact')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Contáctanos</a>
+              <a href="#" onClick={() => navigate('/blog')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Blog</a>
               <div className="pt-3 border-t border-gray-200">
                 <a href="#" onClick={() => navigate('/login')} className="text-gray-700 hover:text-primary-600 font-medium py-2 flex items-center space-x-2">
                   <User className="h-4 w-4" />

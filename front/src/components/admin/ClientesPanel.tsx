@@ -8,6 +8,8 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Edit, Trash } from 'lucide-react'; // Importa los íconos para Editar y Eliminar
 
 interface Cliente {
   id: number;
@@ -42,6 +44,19 @@ export const ClientesPanel = () => {
     },
   ];
 
+  // Función para editar un cliente (por ejemplo, mostrar un modal o redirigir a una página de edición)
+  const handleEdit = (id: number) => {
+    alert(`Editar cliente con ID: ${id}`);
+  };
+
+  // Función para eliminar un cliente (por ejemplo, mostrar un mensaje de confirmación antes de eliminar)
+  const handleDelete = (id: number) => {
+    const isConfirmed = window.confirm('¿Estás seguro de que deseas eliminar este cliente?');
+    if (isConfirmed) {
+      alert(`Cliente con ID: ${id} eliminado.`);
+    }
+  };
+
   return (
     <div className="p-4 md:p-6">
       <Card className="shadow-md border">
@@ -62,6 +77,7 @@ export const ClientesPanel = () => {
                   <TableHead className="text-gray-700">Correo</TableHead>
                   <TableHead className="text-gray-700">Rol</TableHead>
                   <TableHead className="text-gray-700">Fecha de creación</TableHead>
+                  <TableHead className="text-gray-700 text-right">Acciones</TableHead> {/* Alineado a la derecha */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -92,6 +108,28 @@ export const ClientesPanel = () => {
                         month: 'long',
                         day: 'numeric',
                       })}
+                    </TableCell>
+                    <TableCell className="text-right"> {/* Alineado a la derecha */}
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(cliente.id)}
+                          className="transition-all duration-200 hover:bg-blue-100 hover:text-blue-600"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-500 hover:bg-red-100 hover:text-red-600 transition-all duration-200"
+                          onClick={() => handleDelete(cliente.id)}
+                        >
+                          <Trash className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -132,6 +170,26 @@ export const ClientesPanel = () => {
                     day: 'numeric',
                   })}
                 </p>
+                <div className="flex space-x-2 justify-end mt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(cliente.id)}
+                    className="transition-all duration-200 hover:bg-blue-100 hover:text-blue-600"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-500 hover:bg-red-100 hover:text-red-600 transition-all duration-200"
+                    onClick={() => handleDelete(cliente.id)}
+                  >
+                    <Trash className="h-4 w-4 mr-2" />
+                    Eliminar
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

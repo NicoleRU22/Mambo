@@ -10,12 +10,17 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false); // Estado para "Recordarme"
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Login attempt:', { email, password });
     navigate('/');
+  };
+
+  const isFormValid = () => {
+    return email && password; // Verificar si los campos de correo y contraseña no están vacíos
   };
 
   return (
@@ -33,7 +38,6 @@ const Login = () => {
 
         <Card className="shadow-2xl border-0 rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105">
           <CardHeader className="text-center pb-8">
-            {/* Logo con imagen */}
             <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 transition-transform transform hover:rotate-12">
               <img 
                 src="/logo.jpeg" 
@@ -88,7 +92,13 @@ const Login = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <input type="checkbox" id="remember" className="rounded" />
+                  <input 
+                    type="checkbox" 
+                    id="remember" 
+                    className="rounded"
+                    checked={rememberMe} 
+                    onChange={() => setRememberMe(!rememberMe)}  // Cambio de estado para "Recordarme"
+                  />
                   <Label htmlFor="remember" className="text-sm text-gray-600">Recordarme</Label>
                 </div>
                 <Button variant="link" className="text-sm text-primary-600 hover:text-primary-700 p-0 transition-colors">
@@ -99,6 +109,7 @@ const Login = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg transition duration-200"
+                disabled={!isFormValid()}  // Deshabilitar el botón si el formulario no es válido
               >
                 Iniciar Sesión
               </Button>

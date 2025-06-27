@@ -20,6 +20,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false); // Estado para la aceptación de términos
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,6 +28,10 @@ const Register = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleCheckboxChange = () => {
+    setAcceptTerms(prev => !prev);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +65,11 @@ const Register = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const isFormValid = () => {
+    // Verificar si todos los campos están completos y si los términos y condiciones están aceptados
+    return formData.name && formData.email && formData.password && formData.confirmPassword && acceptTerms;
   };
 
   return (
@@ -173,13 +183,20 @@ const Register = () => {
               </div>
 
               <div className="flex items-start space-x-2">
-                <input type="checkbox" id="terms" className="rounded mt-1" required />
+                <input 
+                  type="checkbox" 
+                  id="terms" 
+                  className="rounded mt-1" 
+                  checked={acceptTerms}
+                  onChange={handleCheckboxChange}
+                  required 
+                />
                 <Label htmlFor="terms" className="text-sm text-gray-600 leading-tight">
                   Acepto los{' '}
                   <Button
                     variant="link"
                     className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm"
-                    onClick={() => navigate('/terms-and-conditions')}  // Redirige a términos y condiciones
+                    onClick={() => navigate('/terms-and-conditions')}
                   >
                     términos y condiciones
                   </Button>{' '}
@@ -187,7 +204,7 @@ const Register = () => {
                   <Button
                     variant="link"
                     className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm"
-                    onClick={() => navigate('/privacy-policy')}  // Redirige a política de privacidad
+                    onClick={() => navigate('/privacy-policy')}
                   >
                     política de privacidad
                   </Button>
@@ -200,7 +217,7 @@ const Register = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg transition duration-200"
-                disabled={loading}
+                disabled={!isFormValid()}  // Deshabilitar el botón si el formulario no es válido
               >
                 {loading ? 'Registrando...' : 'Crear Cuenta'}
               </Button>

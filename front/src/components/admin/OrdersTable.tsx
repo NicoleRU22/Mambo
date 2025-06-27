@@ -33,6 +33,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 type Order = {
   id: string;
@@ -143,11 +145,106 @@ export const OrdersTable = () => {
     return <Badge className={statusStyles[status] || 'bg-gray-500'}>{status}</Badge>;
   };
 
+  const exportToExcel = async () => {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Pedidos');
+
+  // Establecer anchos manualmente
+  sheet.columns = [
+    { key: 'id', width: 12 },
+    { key: 'customer', width: 25 },
+    { key: 'email', width: 30 },
+    { key: 'date', width: 15 },
+    { key: 'total', width: 15 },
+    { key: 'status', width: 15 },
+    { key: 'items', width: 10 },
+  ];
+
+  // Título
+  sheet.mergeCells('A1', 'G1');
+  const titleCell = sheet.getCell('A1');
+  titleCell.value = 'Gestión de pedidos';
+  titleCell.font = { size: 16, bold: true };
+  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+  // Encabezado (en la fila 3)
+  const headers = ['Pedido', 'Cliente', 'Correo', 'Fecha', 'Total', 'Estado', 'Items'];
+  const headerRow = sheet.getRow(3);
+  headerRow.values = headers;
+  headerRow.height = 20;
+
+  headerRow.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '305496' },
+    };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    cell.border = {
+      top: { style: 'thin' },
+      bottom: { style: 'thin' },
+      left: { style: 'thin' },
+      right: { style: 'thin' },
+    };
+  });
+
+  // Colores por estado
+  const statusColorMap: Record<string, string> = {
+    Completado: 'C6EFCE',
+    Enviado: 'D9E1F2',
+    Procesando: 'FFF2CC',
+    Pendiente: 'FCE4D6',
+    Cancelado: 'F8CBAD',
+  };
+
+  // Insertar datos a partir de fila 4
+  filteredOrders.forEach((order, index) => {
+    const rowIndex = 4 + index;
+    const row = sheet.getRow(rowIndex);
+
+    row.values = [
+      order.id,
+      order.customer,
+      order.email,
+      order.date,
+      order.total,
+      order.status,
+      order.items,
+    ];
+
+    const color = statusColorMap[order.status] || 'FFFFFF';
+
+    row.eachCell((cell, colNumber) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: color },
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+      if (colNumber === 5) {
+        cell.numFmt = '"S/."#,##0.00';
+      }
+      if (colNumber === 4) {
+        cell.numFmt = 'yyyy-mm-dd';
+      }
+    });
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  saveAs(new Blob([buffer]), 'Gestion_de_Pedidos.xlsx');
+};
+
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Gestión de Pedidos</CardTitle>
-
         <div className="flex flex-col md:flex-row mt-4 space-y-2 md:space-y-0 md:space-x-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -158,7 +255,7 @@ export const OrdersTable = () => {
               onChange={(e) => setFilterName(e.target.value)}
             />
           </div>
-          <Button variant="outline">
+          <Button variant="outline" onClick={exportToExcel}>
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
@@ -189,7 +286,6 @@ export const OrdersTable = () => {
               className="text-sm"
             />
 
-            {/* Rango de precio */}
             <div className="flex flex-col space-y-1">
               <label className="text-sm">Rango de precios: S/.{minRange} - S/.{maxRange}</label>
               <div className="flex space-x-2">

@@ -39,6 +39,5 @@ module.exports = {
   prisma,
   query,
   getConnection,
-  testConnection,
-  closeConnection
-};
+  testConnection
+}; 

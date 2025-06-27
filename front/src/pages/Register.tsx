@@ -1,75 +1,67 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [acceptTerms, setAcceptTerms] = useState(false); // Estado para la aceptación de términos
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
-  };
-
-  const handleCheckboxChange = () => {
-    setAcceptTerms(prev => !prev);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     if (formData.password !== formData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError("Las contraseñas no coinciden");
       return;
     }
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          password: formData.password
-        })
+          password: formData.password,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Error al registrar usuario');
+        const message =
+          data?.details?.[0]?.msg || data.error || "Error al registrar usuario";
+        setError(message);
       } else {
-        setSuccess('¡Registro exitoso! Redirigiendo al login...');
-        setTimeout(() => navigate('/login'), 1500);
+        setSuccess("¡Registro exitoso! Redirigiendo al login...");
+        setTimeout(() => navigate("/login"), 1500);
       }
     } catch (err) {
-      setError('Error de red o servidor.');
+      setError("Error de red o servidor.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const isFormValid = () => {
-    // Verificar si todos los campos están completos y si los términos y condiciones están aceptados
-    return formData.name && formData.email && formData.password && formData.confirmPassword && acceptTerms;
   };
 
   return (
@@ -78,7 +70,7 @@ const Register = () => {
         {/* Back button */}
         <Button
           variant="ghost"
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
           className="mb-6 text-white hover:text-gray-900 transition-colors duration-300"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -88,20 +80,29 @@ const Register = () => {
         <Card className="shadow-2xl border-0 rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105">
           <CardHeader className="text-center pb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 transition-transform transform hover:rotate-12">
-              <img 
-                src="/logo.jpeg" 
-                alt="Logo" 
-                className="w-full h-full object-cover rounded-full" 
+              <img
+                src="/logo.jpeg"
+                alt="Logo"
+                className="w-full h-full object-cover rounded-full"
               />
             </div>
-            <CardTitle className="text-3xl font-semibold text-gray-900">Crear cuenta</CardTitle>
-            <p className="text-gray-400 mt-2 text-sm">Únete a la familia Mambo Petshop</p>
+            <CardTitle className="text-3xl font-semibold text-gray-900">
+              Crear cuenta
+            </CardTitle>
+            <p className="text-gray-400 mt-2 text-sm">
+              Únete a la familia Mambo Petshop
+            </p>
           </CardHeader>
 
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-lg font-medium text-gray-700">Nombre completo</Label>
+                <Label
+                  htmlFor="name"
+                  className="text-lg font-medium text-gray-700"
+                >
+                  Nombre completo
+                </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <Input
@@ -118,7 +119,12 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-lg font-medium text-gray-700">Correo electrónico</Label>
+                <Label
+                  htmlFor="email"
+                  className="text-lg font-medium text-gray-700"
+                >
+                  Correo electrónico
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <Input
@@ -135,7 +141,12 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-lg font-medium text-gray-700">Contraseña</Label>
+                <Label
+                  htmlFor="password"
+                  className="text-lg font-medium text-gray-700"
+                >
+                  Contraseña
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <Input
@@ -153,13 +164,22 @@ const Register = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-600 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-lg font-medium text-gray-700">Confirmar contraseña</Label>
+                <Label
+                  htmlFor="confirmPassword"
+                  className="text-lg font-medium text-gray-700"
+                >
+                  Confirmar contraseña
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <Input
@@ -177,58 +197,53 @@ const Register = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-600 transition-colors"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
               <div className="flex items-start space-x-2">
-                <input 
-                  type="checkbox" 
-                  id="terms" 
-                  className="rounded mt-1" 
-                  checked={acceptTerms}
-                  onChange={handleCheckboxChange}
-                  required 
-                />
+                <input type="checkbox" id="terms" className="rounded mt-1" required />
                 <Label htmlFor="terms" className="text-sm text-gray-600 leading-tight">
                   Acepto los{' '}
-                  <Button
-                    variant="link"
-                    className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm"
-                    onClick={() => navigate('/terms-and-conditions')}
-                  >
+                  <Button variant="link" className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm">
                     términos y condiciones
                   </Button>{' '}
                   y la{' '}
-                  <Button
-                    variant="link"
-                    className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm"
-                    onClick={() => navigate('/privacy-policy')}
-                  >
+                  <Button variant="link" className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm">
                     política de privacidad
                   </Button>
                 </Label>
               </div>
 
-              {error && <div className="text-red-600 text-center text-sm">{error}</div>}
-              {success && <div className="text-green-600 text-center text-sm">{success}</div>}
+              {error && (
+                <div className="text-red-600 text-center text-sm">{error}</div>
+              )}
+              {success && (
+                <div className="text-green-600 text-center text-sm">
+                  {success}
+                </div>
+              )}
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg transition duration-200"
-                disabled={!isFormValid()}  // Deshabilitar el botón si el formulario no es válido
+                disabled={loading}
               >
-                {loading ? 'Registrando...' : 'Crear Cuenta'}
+                {loading ? "Registrando..." : "Crear Cuenta"}
               </Button>
             </form>
 
             <div className="text-center">
               <p className="text-sm text-gray-600">
-                ¿Ya tienes una cuenta?{' '}
-                <Button 
-                  variant="link" 
-                  onClick={() => navigate('/login')}
+                ¿Ya tienes una cuenta?{" "}
+                <Button
+                  variant="link"
+                  onClick={() => navigate("/login")}
                   className="text-primary-600 hover:text-primary-700 p-0 font-medium transition-colors"
                 >
                   Inicia sesión aquí

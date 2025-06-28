@@ -160,7 +160,7 @@ const Header = () => {
             <span>Inicio</span>
           </a>
           <a href="#" onClick={() => navigate('/catalog')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200">Catálogo</a>
-          <a href="#" onClick={() => navigate('/catalog?category=ofertas')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200">Ofertas</a>
+          <a href="#" onClick={() => navigate('/ofertas')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200">Ofertas</a>
           <a href="#" onClick={() => navigate('/aboutus')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200">Nosotros</a>
           <a href="#" onClick={() => navigate('/contact')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200">Contáctanos</a>
           <a href="#" 

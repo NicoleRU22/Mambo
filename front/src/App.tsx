@@ -18,6 +18,12 @@ import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import AboutUs from "./pages/AboutUs";
 import ProductDetail from "./pages/ProductDetail";
+import Profile from "./pages/Profile";
+import Orders from "./pages/Orders";
+import Ofertas from "./pages/Ofertas";
+import Devoluciones from "./pages/Devoluciones";
+import TermsOfService from "./pages/TermsOfService";
+import Newsletter from "./pages/Newsletter";
 
 // Importar las nuevas páginas
 import TermsAndConditions from "./pages/Terms-and-conditions";
@@ -41,6 +47,10 @@ const App = () => (
           <Route path="/contact" element={<Contact />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/aboutus" element={<AboutUs />} />
+          <Route path="/ofertas" element={<Ofertas />} />
+          <Route path="/devoluciones" element={<Devoluciones />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/newsletter" element={<Newsletter />} />
           <Route
             path="/admin"
             element={
@@ -62,6 +72,22 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Checkout />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
               </ProtectedRoute>
             }
           />

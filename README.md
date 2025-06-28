@@ -1,28 +1,35 @@
-# Mambo PetShop - E-commerce para Mascotas
+# 🐾 Mambo PetShop - E-commerce para Mascotas
 
-Un sistema completo de e-commerce para productos de mascotas construido con React + TypeScript (frontend) y Node.js + Express + Prisma (backend).
+Plataforma completa de e-commerce para productos de mascotas con backend en Node.js/Express y frontend en React/TypeScript.
 
 ## 🚀 Características
 
-### Frontend (React + TypeScript)
-- **Autenticación completa** con JWT y contexto de React
-- **Catálogo de productos** con filtros y búsqueda
-- **Carrito de compras** persistente
-- **Panel de administración** para gestión de productos y pedidos
-- **Diseño responsive** con Tailwind CSS y shadcn/ui
-- **Protección de rutas** basada en roles
-
 ### Backend (Node.js + Express + Prisma)
-- **API RESTful** completa
-- **Autenticación JWT** con middleware de protección
-- **Base de datos PostgreSQL** con Prisma ORM
-- **Validación de datos** con express-validator
-- **Middleware de seguridad** (CORS, Helmet, Rate Limiting)
-- **Gestión de archivos** para imágenes de productos
+- **Autenticación JWT** - Sistema seguro de login/registro
+- **CRUD de Productos** - Gestión completa con categorías y tipos de mascota
+- **Carrito de Compras** - Persistente y sincronizado
+- **Sistema de Pedidos** - Procesamiento completo con estados
+- **Blog** - Gestión de contenido y posts
+- **Newsletter** - Sistema de suscripciones
+- **Búsqueda Avanzada** - Con filtros y sugerencias
+- **Ofertas** - Gestión de descuentos y promociones
+- **Devoluciones** - Sistema de solicitudes de devolución
+- **Panel de Administración** - Gestión completa de usuarios y pedidos
+
+### Frontend (React + TypeScript + Tailwind)
+- **Interfaz Moderna** - Diseño responsive con Tailwind CSS
+- **Autenticación** - Login/registro con contexto global
+- **Catálogo de Productos** - Filtros, búsqueda y paginación
+- **Carrito de Compras** - Gestión de productos y checkout
+- **Perfil de Usuario** - Gestión de datos personales y pedidos
+- **Blog** - Visualización de posts y categorías
+- **Newsletter** - Suscripción y gestión
+- **Panel de Admin** - Dashboard completo para administradores
+- **Páginas Informativas** - Políticas, términos, contacto
 
 ## 📋 Requisitos Previos
 
-- Node.js (v16 o superior)
+- Node.js (v18 o superior)
 - PostgreSQL (v12 o superior)
 - npm o yarn
 
@@ -34,144 +41,83 @@ git clone <repository-url>
 cd MamboPetShop
 ```
 
-### 2. Configurar el Backend
-
+### 2. Instalar dependencias
 ```bash
-cd backend
-npm install
+npm run install:all
 ```
 
-#### Configurar variables de entorno
-Crear un archivo `.env` en la carpeta `backend`:
+### 3. Configurar variables de entorno
 
+#### Backend
+```bash
+cd backend
+cp env.example .env
+```
+
+Editar `backend/.env`:
 ```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/mambo_petshop"
-
-# JWT
-JWT_SECRET="tu_jwt_secret_super_seguro_aqui"
-JWT_EXPIRES_IN="7d"
-
-# Server
-PORT=5000
+PORT=4000
 NODE_ENV=development
-
-# CORS
+DATABASE_URL="postgresql://username:password@localhost:5432/mambo_petshop"
+JWT_SECRET=your_super_secret_jwt_key_here
+JWT_EXPIRES_IN=7d
 FRONTEND_URL=http://localhost:3000
 ```
 
-#### Configurar la base de datos
-```bash
-# Generar y ejecutar migraciones
-npx prisma migrate dev
-
-# Opcional: Poblar la base de datos con datos de ejemplo
-npx prisma db seed
-```
-
-#### Iniciar el servidor backend
-```bash
-# Desarrollo
-npm run dev
-
-# Producción
-npm start
-```
-
-### 3. Configurar el Frontend
-
+#### Frontend
 ```bash
 cd front
-npm install
+cp env.example .env
 ```
 
-#### Configurar variables de entorno
-Crear un archivo `.env` en la carpeta `front`:
-
+Editar `front/.env`:
 ```env
-# API Configuration
-VITE_API_URL=http://localhost:5000/api
-
-# Environment
-VITE_NODE_ENV=development
+VITE_API_URL=http://localhost:4000/api
+VITE_APP_NAME=Mambo PetShop
 ```
 
-#### Iniciar el servidor frontend
+### 4. Configurar base de datos
 ```bash
+cd backend
+npm run db:setup
+npm run db:seed
+```
+
+### 5. Iniciar desarrollo
+```bash
+# Desde la raíz del proyecto
 npm run dev
 ```
+
+Esto iniciará:
+- Backend en http://localhost:4000
+- Frontend en http://localhost:3000
 
 ## 📚 Estructura del Proyecto
 
 ```
 MamboPetShop/
-├── backend/                 # Servidor Node.js + Express
+├── backend/                 # Backend Node.js/Express
 │   ├── src/
-│   │   ├── config/         # Configuración de base de datos
-│   │   ├── controllers/    # Controladores de la API
-│   │   ├── middleware/     # Middleware (auth, validation)
-│   │   ├── models/         # Modelos de datos
 │   │   ├── routes/         # Rutas de la API
-│   │   └── server.js       # Servidor principal
-│   ├── prisma/             # Configuración de Prisma
-│   └── package.json
-├── front/                   # Aplicación React + TypeScript
+│   │   ├── controllers/    # Controladores
+│   │   ├── services/       # Lógica de negocio
+│   │   ├── middleware/     # Middlewares
+│   │   └── lib/           # Utilidades
+│   ├── prisma/            # Esquema de base de datos
+│   └── uploads/           # Archivos subidos
+├── front/                  # Frontend React/TypeScript
 │   ├── src/
-│   │   ├── components/     # Componentes reutilizables
-│   │   ├── contexts/       # Contextos de React (Auth)
-│   │   ├── pages/          # Páginas de la aplicación
-│   │   ├── services/       # Servicios API
-│   │   └── App.tsx         # Componente principal
-│   └── package.json
+│   │   ├── components/    # Componentes React
+│   │   ├── pages/         # Páginas
+│   │   ├── contexts/      # Contextos (Auth)
+│   │   ├── services/      # Servicios API
+│   │   └── hooks/         # Hooks personalizados
+│   └── public/            # Archivos estáticos
 └── README.md
 ```
 
-## 🔐 Autenticación y Autorización
-
-### Roles de Usuario
-- **USER**: Usuario regular que puede comprar productos
-- **ADMIN**: Administrador con acceso al panel de administración
-
-### Endpoints Protegidos
-- `/api/cart/*` - Requiere autenticación
-- `/api/orders/*` - Requiere autenticación
-- `/api/products/*` (POST, PUT, DELETE) - Requiere rol ADMIN
-- `/api/users/*` - Requiere autenticación
-
-### Flujo de Autenticación
-1. Usuario se registra/inicia sesión
-2. Backend genera token JWT
-3. Frontend almacena token en localStorage
-4. Token se incluye automáticamente en todas las requests
-5. Middleware valida token en cada request protegido
-
-## 🛒 Funcionalidades del E-commerce
-
-### Catálogo de Productos
-- Listado con paginación
-- Filtros por categoría, precio, tipo de mascota
-- Búsqueda por nombre y descripción
-- Ordenamiento por precio, rating, nombre
-
-### Carrito de Compras
-- Agregar/remover productos
-- Actualizar cantidades
-- Cálculo automático de totales
-- Persistencia en base de datos
-
-### Proceso de Compra
-- Checkout con información de envío
-- Múltiples métodos de pago
-- Confirmación de pedido
-- Seguimiento de estado
-
-### Panel de Administración
-- Gestión de productos (CRUD)
-- Gestión de pedidos
-- Estadísticas de ventas
-- Gestión de usuarios
-
-## 🔧 API Endpoints
+## 🔌 API Endpoints
 
 ### Autenticación
 - `POST /api/auth/register` - Registrar usuario
@@ -180,60 +126,151 @@ MamboPetShop/
 - `POST /api/auth/logout` - Cerrar sesión
 
 ### Productos
-- `GET /api/products` - Listar productos
+- `GET /api/products` - Listar productos (con filtros)
 - `GET /api/products/:id` - Obtener producto
-- `POST /api/products` - Crear producto (ADMIN)
-- `PUT /api/products/:id` - Actualizar producto (ADMIN)
-- `DELETE /api/products/:id` - Eliminar producto (ADMIN)
+- `POST /api/products` - Crear producto (admin)
+- `PUT /api/products/:id` - Actualizar producto (admin)
+- `DELETE /api/products/:id` - Eliminar producto (admin)
 
 ### Carrito
 - `GET /api/cart` - Obtener carrito
 - `POST /api/cart` - Agregar al carrito
 - `PUT /api/cart/:id` - Actualizar cantidad
-- `DELETE /api/cart/:id` - Remover del carrito
+- `DELETE /api/cart/:id` - Eliminar del carrito
+- `POST /api/cart/checkout` - Procesar compra
 
 ### Pedidos
 - `GET /api/orders` - Listar pedidos del usuario
-- `POST /api/orders` - Crear pedido
 - `GET /api/orders/:id` - Obtener pedido
-- `PUT /api/orders/:id/status` - Actualizar estado (ADMIN)
+- `GET /api/orders/admin/all` - Todos los pedidos (admin)
+- `PUT /api/orders/:id/status` - Actualizar estado (admin)
+
+### Blog
+- `GET /api/blog` - Listar posts
+- `GET /api/blog/:id` - Obtener post
+- `POST /api/blog` - Crear post (admin)
+- `PUT /api/blog/:id` - Actualizar post (admin)
+- `DELETE /api/blog/:id` - Eliminar post (admin)
+
+### Newsletter
+- `POST /api/newsletter` - Suscribirse
+- `DELETE /api/newsletter/:email` - Desuscribirse
+- `GET /api/newsletter/subscribers` - Listar suscriptores (admin)
+
+### Búsqueda
+- `GET /api/search?q=term` - Búsqueda simple
+- `GET /api/search/advanced` - Búsqueda avanzada
+- `GET /api/search/popular` - Términos populares
+- `GET /api/search/suggestions` - Sugerencias
+
+### Ofertas
+- `GET /api/offers` - Listar ofertas
+- `GET /api/offers/active` - Ofertas activas
+- `POST /api/offers` - Crear oferta (admin)
+- `PUT /api/offers/:id` - Actualizar oferta (admin)
+
+## 🔐 Autenticación
+
+El sistema utiliza JWT (JSON Web Tokens) para la autenticación:
+
+1. **Login/Registro**: El usuario recibe un token JWT
+2. **Almacenamiento**: El token se guarda en localStorage
+3. **Requests**: Se incluye en el header `Authorization: Bearer <token>`
+4. **Middleware**: Valida el token en cada request protegido
+
+### Roles de Usuario
+- **USER**: Usuario normal (compras, perfil, pedidos)
+- **ADMIN**: Administrador (gestión completa)
+
+## 🛒 Flujo de Compra
+
+1. **Navegación**: Usuario explora productos
+2. **Carrito**: Agrega productos al carrito
+3. **Checkout**: Completa información de envío y pago
+4. **Confirmación**: Recibe confirmación del pedido
+5. **Seguimiento**: Puede ver el estado del pedido
+
+## 📊 Panel de Administración
+
+### Dashboard
+- Estadísticas de ventas
+- Productos más vendidos
+- Pedidos recientes
+- Actividad de usuarios
+
+### Gestión de Productos
+- CRUD completo de productos
+- Gestión de categorías
+- Control de inventario
+- Subida de imágenes
+
+### Gestión de Pedidos
+- Ver todos los pedidos
+- Actualizar estados
+- Gestionar devoluciones
+- Exportar datos
+
+### Gestión de Usuarios
+- Ver usuarios registrados
+- Gestionar roles
+- Estadísticas de usuarios
 
 ## 🚀 Despliegue
 
-### Backend (Heroku/Railway)
-1. Configurar variables de entorno en la plataforma
-2. Conectar base de datos PostgreSQL
-3. Ejecutar migraciones: `npx prisma migrate deploy`
+### Backend (Producción)
+```bash
+cd backend
+npm run build
+npm start
+```
 
-### Frontend (Vercel/Netlify)
-1. Configurar variables de entorno
-2. Conectar repositorio
-3. Configurar build command: `npm run build`
+### Frontend (Producción)
+```bash
+cd front
+npm run build
+# Servir archivos estáticos con nginx o similar
+```
+
+### Variables de Entorno (Producción)
+- Configurar `NODE_ENV=production`
+- Usar base de datos PostgreSQL en producción
+- Configurar CORS para dominio de producción
+- Usar JWT_SECRET seguro
 
 ## 🧪 Testing
 
 ```bash
-# Backend
-cd backend
-npm test
+# Ejecutar tests del backend
+npm run test:backend
 
-# Frontend
-cd front
+# Ejecutar tests del frontend
+npm run test:frontend
+
+# Ejecutar todos los tests
 npm test
 ```
 
 ## 📝 Scripts Disponibles
 
-### Backend
-- `npm run dev` - Iniciar servidor en modo desarrollo
-- `npm start` - Iniciar servidor en producción
-- `npm run migrate` - Ejecutar migraciones
-- `npm run seed` - Poblar base de datos
+```bash
+# Desarrollo
+npm run dev                    # Iniciar backend y frontend
+npm run dev:backend           # Solo backend
+npm run dev:frontend          # Solo frontend
 
-### Frontend
-- `npm run dev` - Iniciar servidor de desarrollo
-- `npm run build` - Construir para producción
-- `npm run preview` - Vista previa de producción
+# Construcción
+npm run build                 # Construir ambos
+npm run build:backend         # Solo backend
+npm run build:frontend        # Solo frontend
+
+# Base de datos
+npm run db:setup              # Configurar base de datos
+npm run db:seed               # Poblar con datos de prueba
+
+# Instalación
+npm run install:all           # Instalar todas las dependencias
+npm run setup                 # Instalación completa
+```
 
 ## 🤝 Contribución
 
@@ -249,26 +286,11 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 🆘 Soporte
 
-Si tienes problemas o preguntas:
-
-1. Revisa la documentación
-2. Busca en los issues existentes
-3. Crea un nuevo issue con detalles del problema
-
-## 🔄 Actualizaciones
-
-Para mantener el proyecto actualizado:
-
-```bash
-# Backend
-cd backend
-npm update
-
-# Frontend
-cd front
-npm update
-```
+Para soporte técnico o preguntas:
+- Crear un issue en GitHub
+- Contactar al equipo de desarrollo
+- Revisar la documentación de la API
 
 ---
 
-**Desarrollado con ❤️ para Mambo PetShop** 
+**Mambo PetShop** - Tu tienda de confianza para mascotas 🐕🐱🐦 

@@ -6,6 +6,16 @@ import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import categoryRoutes from "./routes/categories.js";
+import returnRoutes from './routes/returnRequests.js';
+import newsletterRoutes from './routes/newsletter.js';
+import blogRoutes from './routes/blog.js';
+import searchRoutes from './routes/searchLogs.js';
+import offersRoutes from './routes/offers.js';
+import healthRoutes from './routes/health.js';
+import returnsRoutes from './routes/returns.js';
+
+
 
 // Variables para rutas absolutas en ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -56,8 +66,17 @@ app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/return", returnRoutes);
+app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/blog", blogRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/offers", offersRoutes);
+app.use("/api/health", healthRoutes);
+app.use("/api/returns", returnsRoutes);
 
-// Health check
+
+// Health check (mantener para compatibilidad)
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",

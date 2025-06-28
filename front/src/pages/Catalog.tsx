@@ -1,20 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Search, Filter, Star, ShoppingCart, Heart } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Search, Filter, Star, ShoppingCart, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { productService, cartService } from '@/services/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { productService, cartService, categoryService } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Product {
   id: number;
   name: string;
   description?: string;
-  price: number;
+  price: number;  
   original_price?: number;
   images: string[];
   rating: number;
@@ -32,11 +38,11 @@ interface Category {
 }
 
 const Catalog = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedSize, setSelectedSize] = useState('all');
-  const [selectedPrice, setSelectedPrice] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedSize, setSelectedSize] = useState("all");
+  const [selectedPrice, setSelectedPrice] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,14 +57,14 @@ const Catalog = () => {
         setLoading(true);
         const [productsData, categoriesData] = await Promise.all([
           productService.getAll(),
-          productService.getCategories()
+          categoryService.getAll(),
         ]);
-        
+
         setProducts(productsData.products || []);
-        setCategories(categoriesData.categories || []);
+        setCategories(categoriesData || []);
       } catch (err) {
-        console.error('Error loading products:', err);
-        setError('Error al cargar los productos');
+        console.error("Error loading products:", err);
+        setError("Error al cargar los productos");
       } finally {
         setLoading(false);
       }
@@ -68,24 +74,27 @@ const Catalog = () => {
   }, []);
 
   // Filtrar productos
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = selectedCategory === 'all' || product.category_name === selectedCategory;
-    
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.description &&
+        product.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory =
+      selectedCategory === "all" || product.category_name === selectedCategory;
+
     return matchesSearch && matchesCategory;
   });
 
   // Ordenar productos
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
-      case 'price-low':
+      case "price-low":
         return a.price - b.price;
-      case 'price-high':
+      case "price-high":
         return b.price - a.price;
-      case 'rating':
+      case "rating":
         return b.rating - a.rating;
-      case 'name':
+      case "name":
       default:
         return a.name.localeCompare(b.name);
     }
@@ -93,16 +102,16 @@ const Catalog = () => {
 
   const handleAddToCart = async (productId: number) => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
     try {
       await cartService.addToCart(productId, 1);
       // Aquí podrías mostrar un toast de éxito
-      console.log('Producto agregado al carrito');
+      console.log("Producto agregado al carrito");
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error("Error adding to cart:", error);
     }
   };
 
@@ -140,12 +149,16 @@ const Catalog = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Catálogo de Productos</h1>
-          <p className="text-gray-600">Encuentra los mejores productos para tu mascota</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Catálogo de Productos
+          </h1>
+          <p className="text-gray-600">
+            Encuentra los mejores productos para tu mascota
+          </p>
         </div>
 
         {/* Search and Filters */}
@@ -166,7 +179,10 @@ const Catalog = () => {
             </div>
 
             {/* Category Filter */}
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Categoría" />
               </SelectTrigger>
@@ -203,7 +219,9 @@ const Catalog = () => {
               <SelectContent>
                 <SelectItem value="name">Nombre A-Z</SelectItem>
                 <SelectItem value="price-low">Precio: Menor a Mayor</SelectItem>
-                <SelectItem value="price-high">Precio: Mayor a Menor</SelectItem>
+                <SelectItem value="price-high">
+                  Precio: Mayor a Menor
+                </SelectItem>
                 <SelectItem value="rating">Mejor Valorados</SelectItem>
               </SelectContent>
             </Select>
@@ -231,13 +249,19 @@ const Catalog = () => {
             >
               <div className="relative">
                 <img
-                  src={product.images[0] || '/placeholder.svg'}
+                  src={product.images[0] || "/placeholder.svg"}
                   alt={product.name}
                   className="w-full h-64 object-cover rounded-t-lg"
                 />
                 {product.original_price && (
                   <span className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                    -{Math.round(((product.original_price - product.price) / product.original_price) * 100)}%
+                    -
+                    {Math.round(
+                      ((product.original_price - product.price) /
+                        product.original_price) *
+                        100
+                    )}
+                    %
                   </span>
                 )}
                 <button
@@ -252,27 +276,38 @@ const Catalog = () => {
               </div>
 
               <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                  {product.name}
+                </h3>
 
                 <div className="flex items-center space-x-1 mb-2">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm text-gray-600">{product.rating}</span>
-                  <span className="text-sm text-gray-400">({product.reviews_count})</span>
+                  <span className="text-sm text-gray-600">
+                    {product.rating}
+                  </span>
+                  <span className="text-sm text-gray-400">
+                    ({product.reviews_count})
+                  </span>
                 </div>
 
                 <div className="flex items-center space-x-2 mb-3">
-                  <span className="text-lg font-bold text-primary-600">S/.{product.price}</span>
+                  <span className="text-lg font-bold text-primary-600">
+                    S/.{product.price}
+                  </span>
                   {product.original_price && (
-                    <span className="text-sm text-gray-400 line-through">S/.{product.original_price}</span>
+                    <span className="text-sm text-gray-400 line-through">
+                      S/.{product.original_price}
+                    </span>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-gray-500">
-                    {product.sizes.length > 0 && `Tallas: ${product.sizes.join(', ')}`}
+                    {product.sizes.length > 0 &&
+                      `Tallas: ${product.sizes.join(", ")}`}
                   </div>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="bg-primary-600 hover:bg-primary-700"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -291,7 +326,9 @@ const Catalog = () => {
         {/* Load More */}
         {sortedProducts.length === 0 && (
           <div className="text-center mt-12">
-            <p className="text-gray-500">No se encontraron productos que coincidan con tu búsqueda.</p>
+            <p className="text-gray-500">
+              No se encontraron productos que coincidan con tu búsqueda.
+            </p>
           </div>
         )}
 

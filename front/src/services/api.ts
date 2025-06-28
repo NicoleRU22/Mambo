@@ -95,6 +95,8 @@ export const productService = {
     return apiRequest(`/products/${id}`);
   },
 
+  getOffers: () => apiRequest('/products/offers'),
+
   create: async (productData: {
     name: string;
     description: string;
@@ -206,6 +208,21 @@ export const orderService = {
   getOrderStats: async () => {
     return apiRequest('/orders/stats/summary');
   },
+
+  checkout: async (checkoutData: {
+    shipping_address: string;
+    billing_address: string;
+    payment_method: string;
+    contact_phone: string;
+    contact_email: string;
+    shipping_method: string;
+    notes?: string;
+  }) => {
+    return apiRequest('/orders/checkout', {
+      method: 'POST',
+      body: JSON.stringify(checkoutData),
+    });
+  },
 };
 
 // Servicios de usuarios
@@ -228,9 +245,227 @@ export const userService = {
   },
 };
 
+// Servicios de categorías
+export const categoryService = {
+  getAll: async () => {
+    return apiRequest('/categories');
+  },
+
+  getById: async (id: number) => {
+    return apiRequest(`/categories/${id}`);
+  },
+
+  getWithProducts: async () => {
+    return apiRequest('/categories/with-products');
+  },
+};
+
 // Health check
 export const healthService = {
   check: async () => {
     return apiRequest('/health');
+  },
+};
+
+// Servicios de blog
+export const blogService = {
+  getAllPosts: async () => {
+    return apiRequest('/blog');
+  },
+
+  getPostById: async (id: number) => {
+    return apiRequest(`/blog/${id}`);
+  },
+
+  createPost: async (postData: {
+    title: string;
+    excerpt: string;
+    content: string;
+    image?: string;
+    category: string;
+  }) => {
+    return apiRequest('/blog', {
+      method: 'POST',
+      body: JSON.stringify(postData),
+    });
+  },
+
+  updatePost: async (id: number, postData: {
+    title?: string;
+    excerpt?: string;
+    content?: string;
+    image?: string;
+    category?: string;
+  }) => {
+    return apiRequest(`/blog/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(postData),
+    });
+  },
+
+  deletePost: async (id: number) => {
+    return apiRequest(`/blog/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getPostsByCategory: async (category: string) => {
+    return apiRequest(`/blog/category/${category}`);
+  },
+};
+
+// Servicios de newsletter
+export const newsletterService = {
+  subscribe: async (subscriberData: {
+    name: string;
+    email: string;
+    acceptMarketing?: boolean;
+  }) => {
+    return apiRequest('/newsletter', {
+      method: 'POST',
+      body: JSON.stringify(subscriberData),
+    });
+  },
+
+  unsubscribe: async (email: string) => {
+    return apiRequest(`/newsletter/${email}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getAllSubscribers: async () => {
+    return apiRequest('/newsletter/subscribers');
+  },
+
+  getNewsletterStats: async () => {
+    return apiRequest('/newsletter/stats');
+  },
+};
+
+// Servicios de búsqueda
+export const searchService = {
+  searchProducts: async (searchTerm: string) => {
+    return apiRequest(`/search?q=${encodeURIComponent(searchTerm)}`);
+  },
+
+  advancedSearch: async (params: {
+    searchTerm?: string;
+    category?: string;
+    petType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    minRating?: number;
+    sortBy?: string;
+    sortOrder?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, value.toString());
+      }
+    });
+    
+    const queryString = queryParams.toString();
+    return apiRequest(`/search/advanced${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getPopularSearchTerms: async (limit: number = 10) => {
+    return apiRequest(`/search/popular?limit=${limit}`);
+  },
+
+  getSearchSuggestions: async (searchTerm: string, limit: number = 5) => {
+    return apiRequest(`/search/suggestions?q=${encodeURIComponent(searchTerm)}&limit=${limit}`);
+  },
+
+  getUserSearchHistory: async (limit: number = 10) => {
+    return apiRequest(`/search/history?limit=${limit}`);
+  },
+};
+
+// Servicios de ofertas
+export const offersService = {
+  getAllOffers: async () => {
+    return apiRequest('/offers');
+  },
+
+  getOfferById: async (id: number) => {
+    return apiRequest(`/offers/${id}`);
+  },
+
+  getActiveOffers: async () => {
+    return apiRequest('/offers/active');
+  },
+
+  createOffer: async (offerData: {
+    title: string;
+    description: string;
+    discount: number;
+    productId?: number;
+    categoryId?: number;
+    startDate: string;
+    endDate: string;
+  }) => {
+    return apiRequest('/offers', {
+      method: 'POST',
+      body: JSON.stringify(offerData),
+    });
+  },
+
+  updateOffer: async (id: number, offerData: {
+    title?: string;
+    description?: string;
+    discount?: number;
+    productId?: number;
+    categoryId?: number;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    return apiRequest(`/offers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(offerData),
+    });
+  },
+
+  deleteOffer: async (id: number) => {
+    return apiRequest(`/offers/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// Servicios de devoluciones
+export const returnsService = {
+  createReturnRequest: async (returnData: {
+    orderId: number;
+    reason: string;
+    description?: string;
+  }) => {
+    return apiRequest('/return', {
+      method: 'POST',
+      body: JSON.stringify(returnData),
+    });
+  },
+
+  getReturnRequests: async () => {
+    return apiRequest('/return');
+  },
+
+  getReturnById: async (id: number) => {
+    return apiRequest(`/return/${id}`);
+  },
+
+  updateReturnStatus: async (id: number, status: string) => {
+    return apiRequest(`/return/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  deleteReturnRequest: async (id: number) => {
+    return apiRequest(`/return/${id}`, {
+      method: 'DELETE',
+    });
   },
 }; 

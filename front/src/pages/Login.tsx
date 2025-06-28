@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2"; // Importa SweetAlert2
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"; // Asegúrate de que la URL sea correcta
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,10 +16,48 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false); // Estado para "Recordarme"
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Función para enviar el formulario de login
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password });
-    navigate("/");
+    
+    // Llamada a la API para verificar las credenciales
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Si el login es exitoso
+        Swal.fire({
+          title: "¡Éxito!",
+          text: "Bienvenido de nuevo.",
+          icon: "success",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al inicio
+          navigate("/");
+        });
+      } else {
+        // Si las credenciales son incorrectas
+        Swal.fire({
+          title: "Error",
+          text: data.error || "Correo o contraseña incorrectos.",
+          icon: "error",
+          confirmButtonText: "Intentar de nuevo",
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: "Hubo un problema al intentar iniciar sesión.",
+        icon: "error",
+        confirmButtonText: "Intentar de nuevo",
+      });
+    }
   };
 
   const isFormValid = () => {

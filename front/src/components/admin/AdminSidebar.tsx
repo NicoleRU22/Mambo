@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -8,10 +8,10 @@ import {
   Users,
   BarChart3,
   Settings,
-  LogOut,
   FileText,
   UserCircle,
 } from 'lucide-react';
+import Swal from 'sweetalert2'; // Importamos SweetAlert2
 
 interface SidebarProps {
   activeSection: string;
@@ -30,6 +30,22 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
     { icon: Settings, label: 'Configuración' },
     { icon: UserCircle, label: 'Perfil' },
   ];
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Si cierras sesión, perderás tu sesión actual.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cerrar sesión',
+      cancelButtonText: 'No, mantenerme aquí',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Redirige a la página principal después de cerrar sesión
+        window.location.href = '/';
+      }
+    });
+  };
 
   return (
     <div className="relative w-16 sm:w-64 bg-white shadow-lg border-r flex flex-col h-screen">
@@ -65,13 +81,17 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
             <span className="sm:inline hidden">{item.label}</span> {/* Texto solo visible en pantallas grandes */}
           </Button>
         ))}
-      </nav>
 
-      <div className="absolute bottom-4 left-4 right-4 sm:hidden flex justify-center">
-        <Button variant="ghost" className="w-12 sm:w-12 justify-start text-gray-700 hover:bg-gray-100">
-          <LogOut className="h-6 w-6 mr-3" />
+        {/* Botón "Cerrar sesión" con color rojo al hacer hover */}
+        <Button
+          onClick={handleLogout} // Llama a la función de cierre de sesión
+          variant="ghost"
+          className={`w-12 sm:w-full justify-start flex sm:items-center items-center space-x-2 text-gray-700 hover:bg-red-500 hover:text-white`}
+        >
+          <LogOut className="h-6 w-6" />
+          <span className="sm:inline hidden">Cerrar Sesión</span>
         </Button>
-      </div>
+      </nav>
     </div>
   );
 };

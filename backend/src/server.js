@@ -1,76 +1,94 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-require('dotenv').config();
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Variables para rutas absolutas en ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 // Middleware de seguridad
 app.use(helmet());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100 // máximo 100 requests por ventana
+  windowMs: 15 * 60 * 1000,
+  max: 100,
 });
 app.use(limiter);
 
 // CORS
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 // Logging
-app.use(morgan('combined'));
+app.use(morgan("combined"));
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
+// Body parsing
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Static files
-app.use('/uploads', express.static('src/uploads'));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/products', require('./routes/products'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/cart', require('./routes/cart'));
+// Rutas (import dinámico porque son CommonJS o aún no convertidas)
+import authRoutes from "./routes/auth.js";
+import productRoutes from "./routes/products.js";
+import userRoutes from "./routes/users.js";
+import orderRoutes from "./routes/orders.js";
+import cartRoutes from "./routes/cart.js";
+
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/cart", cartRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Mambo PetShop API is running',
-    timestamp: new Date().toISOString()
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "Mambo PetShop API is running",
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Error handling middleware
+// Ping
+app.get("/ping", (req, res) => {
+  res.send("pong");
+});
+
+// Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
-    error: 'Something went wrong!',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+  res.status(500).json({
+    error: "Something went wrong!",
+    message:
+      process.env.NODE_ENV === "development"
+        ? err.message
+        : "Internal server error",
   });
 });
 
 // 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+app.use("*", (req, res) => {
+  res.status(404).json({ error: "Route not found" });
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
 });
-
-module.exports = app; 
-
-app.get('/ping', (req, res) => {
-    res.send('pong');
-  });

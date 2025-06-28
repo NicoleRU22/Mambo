@@ -1,7 +1,7 @@
-const express = require('express');
-const { query } = require('../config/database');
-const { validateId } = require('../middleware/validation');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+import express from 'express';
+import { query } from '../config/database.js';
+import { validateId } from '../middleware/validation.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -267,4 +267,4 @@ router.get('/stats/summary', authenticateToken, requireAdmin, async (req, res) =
   }
 });
 
-module.exports = router; 
+export default router;

@@ -1,13 +1,26 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, User, ShoppingCart, Home, Book } from 'lucide-react';
+import { Search, User, ShoppingCart, Home, Book, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
@@ -35,7 +48,6 @@ const Header = () => {
               </div>
             </div>
 
-
           {/* Search bar - Hidden on mobile */}
           <div className="hidden md:flex flex-1 max-w-lg mx-8">
             <div className="relative w-full">
@@ -51,15 +63,59 @@ const Header = () => {
           {/* Right section */}
           <div className="flex items-center space-x-4">
             {/* Account */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="hidden sm:flex items-center space-x-1"
-              onClick={() => navigate('/login')}
-            >
-              <User className="h-5 w-5" />
-              <span className="hidden lg:inline">Mi Cuenta</span>
-            </Button>
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="hidden sm:flex items-center space-x-1"
+                  >
+                    <User className="h-5 w-5" />
+                    <span className="hidden lg:inline">{user?.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium">{user?.name}</p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  {user?.role === 'ADMIN' && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Panel de Administración
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <User className="h-4 w-4 mr-2" />
+                    Mi Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/orders')}>
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Mis Pedidos
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hidden sm:flex items-center space-x-1"
+                onClick={() => navigate('/login')}
+              >
+                <User className="h-5 w-5" />
+                <span className="hidden lg:inline">Mi Cuenta</span>
+              </Button>
+            )}
 
             {/* Cart */}
             <Button variant="ghost" size="sm" className="relative" onClick={() => navigate('/cart')}>
@@ -126,10 +182,37 @@ const Header = () => {
               <a href="#" onClick={() => navigate('/contact')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Contáctanos</a>
               <a href="#" onClick={() => navigate('/blog')} className="text-gray-700 hover:text-primary-600 font-medium py-2">Blog</a>
               <div className="pt-3 border-t border-gray-200">
-                <a href="#" onClick={() => navigate('/login')} className="text-gray-700 hover:text-primary-600 font-medium py-2 flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>Mi Cuenta</span>
-                </a>
+                {isAuthenticated ? (
+                  <>
+                    <div className="px-3 py-2">
+                      <p className="text-sm font-medium">{user?.name}</p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
+                    </div>
+                    {user?.role === 'ADMIN' && (
+                      <a href="#" onClick={() => navigate('/admin')} className="text-gray-700 hover:text-primary-600 font-medium py-2 flex items-center space-x-2">
+                        <Settings className="h-4 w-4" />
+                        <span>Panel de Administración</span>
+                      </a>
+                    )}
+                    <a href="#" onClick={() => navigate('/profile')} className="text-gray-700 hover:text-primary-600 font-medium py-2 flex items-center space-x-2">
+                      <User className="h-4 w-4" />
+                      <span>Mi Perfil</span>
+                    </a>
+                    <a href="#" onClick={() => navigate('/orders')} className="text-gray-700 hover:text-primary-600 font-medium py-2 flex items-center space-x-2">
+                      <ShoppingCart className="h-4 w-4" />
+                      <span>Mis Pedidos</span>
+                    </a>
+                    <a href="#" onClick={handleLogout} className="text-gray-700 hover:text-primary-600 font-medium py-2 flex items-center space-x-2">
+                      <LogOut className="h-4 w-4" />
+                      <span>Cerrar Sesión</span>
+                    </a>
+                  </>
+                ) : (
+                  <a href="#" onClick={() => navigate('/login')} className="text-gray-700 hover:text-primary-600 font-medium py-2 flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>Mi Cuenta</span>
+                  </a>
+                )}
               </div>
             </div>
           </nav>

@@ -61,24 +61,27 @@ const AdminContact = () => {
               </div>
               <p className="text-gray-700">{msg.message}</p>
 
-              <div className="flex gap-2 pt-2">
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => handleReply(msg.email)}
-                >
-                  <Reply className="mr-2 h-4 w-4" />
-                  Responder
-                </Button>
+              <div className="flex flex-wrap gap-2 pt-2">
+  <Button
+    size="sm"
+    variant="default"
+    className="px-2 py-1 text-xs"
+    onClick={() => handleReply(msg.email)}
+  >
+    <Reply className="mr-1 h-4 w-4" />
+    Responder
+  </Button>
 
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => handleAutoReply(msg.email)}
-                >
-                  Enviar respuesta automática
-                </Button>
-              </div>
+  <Button
+    size="sm"
+    variant="secondary"
+    className="px-2 py-1 text-xs"
+    onClick={() => handleAutoReply(msg.email)}
+  >
+    Respuesta automática
+  </Button>
+</div>
+
             </div>
           ))}
         </CardContent>

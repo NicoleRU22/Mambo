@@ -18,18 +18,13 @@ import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import AboutUs from "./pages/AboutUs";
 import ProductDetail from "./pages/ProductDetail";
-<<<<<<< HEAD
 import AdminContact from '@/components/admin/AdminContact';
-=======
 import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
 import Ofertas from "./pages/Ofertas";
 import Devoluciones from "./pages/Devoluciones";
 import TermsOfService from "./pages/TermsOfService";
 import Newsletter from "./pages/Newsletter";
->>>>>>> 1fd8e62f005943fdf2a73f186cb827e8710091cb
-
-// Importar las nuevas páginas
 import TermsAndConditions from "./pages/Terms-and-conditions";
 import PrivacyPolicy from "./pages/Privacy-policy";
 
@@ -101,11 +96,7 @@ const App = () => (
             element={<TermsAndConditions />}
           />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-<<<<<<< HEAD
           <Route path="/admin/contactos" element={<AdminContact />} />
-
-=======
->>>>>>> 1fd8e62f005943fdf2a73f186cb827e8710091cb
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

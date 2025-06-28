@@ -40,7 +40,7 @@ const AdminContact = () => {
   };
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-1 space-y-1">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl flex items-center gap-2">

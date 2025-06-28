@@ -21,7 +21,7 @@ const AdminProfilePanel = () => {
   };
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-1 md:p-1">
       <Card className="shadow-md border">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-gray-800">

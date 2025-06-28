@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import AboutUs from "./pages/AboutUs";
 import ProductDetail from "./pages/ProductDetail";
+import AdminContact from '@/components/admin/AdminContact';
 
 // Importar las nuevas páginas
 import TermsAndConditions from "./pages/Terms-and-conditions";
@@ -43,7 +44,8 @@ const App = () => (
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          
+          <Route path="/admin/contactos" element={<AdminContact />} />
+
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

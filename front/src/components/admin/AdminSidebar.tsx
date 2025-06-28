@@ -1,4 +1,5 @@
 import React from 'react';
+import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -9,6 +10,7 @@ import {
   Settings,
   LogOut,
   FileText,
+  UserCircle,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,7 +26,9 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
     { icon: Users, label: 'Usuarios' },
     { icon: BarChart3, label: 'Reportes' },
     { icon: FileText, label: 'Blog' },
+    { icon: MessageSquare, label: 'Quejas y Sugerencias' },
     { icon: Settings, label: 'Configuración' },
+    { icon: UserCircle, label: 'Perfil' }, // ✅ Nueva opción añadida
   ];
 
   return (

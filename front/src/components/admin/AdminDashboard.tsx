@@ -3,6 +3,7 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { ProductsTable } from '@/components/admin/ProductsTable';
 import { OrdersTable } from '@/components/admin/OrdersTable';
 import { AdminBlog } from '@/components/admin/AdminBlog';
+import AdminContact from '@/components/admin/AdminContact';
 import { ClientesPanel} from '@/components/admin/ClientesPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,6 +28,7 @@ import {
   DollarSign,
   AlertTriangle,
 } from 'lucide-react';
+import AdminProfilePanel from './AdminProfilePanel';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('Dashboard');
@@ -255,6 +257,8 @@ const AdminDashboard = () => {
         {activeSection === 'Pedidos' && <OrdersTable />}
         {activeSection === 'Blog' && <AdminBlog />}
         {activeSection === 'Usuarios' && <ClientesPanel />}
+        {activeSection === 'Perfil' && <AdminProfilePanel />}
+        {activeSection === 'Quejas y Sugerencias' && <AdminContact />}
 
       </div>
     </div>

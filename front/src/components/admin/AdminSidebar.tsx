@@ -21,7 +21,7 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
     { icon: LayoutDashboard, label: 'Dashboard' },
     { icon: Package, label: 'Productos' },
     { icon: ShoppingCart, label: 'Pedidos' },
-    { icon: Users, label: 'Clientes' },
+    { icon: Users, label: 'Usuarios' },
     { icon: BarChart3, label: 'Reportes' },
     { icon: FileText, label: 'Blog' },
     { icon: Settings, label: 'Configuración' },

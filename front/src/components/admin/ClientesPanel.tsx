@@ -62,7 +62,7 @@ export const ClientesPanel = () => {
       <Card className="shadow-md border">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-gray-800">
-            Nuestros clientes
+            Nuestros Usuarios
           </CardTitle>
           <p className="text-sm text-muted-foreground">Conoce más</p>
         </CardHeader>

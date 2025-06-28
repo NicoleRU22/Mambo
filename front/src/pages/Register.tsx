@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2"; // Importa SweetAlert2
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import { useAuth } from "@/contexts/AuthContext";
+import Swal from "sweetalert2";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +20,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -46,26 +46,9 @@ const Register = () => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        const message =
-          data?.details?.[0]?.msg || data.error || "Error al registrar usuario";
-        Swal.fire({
-          icon: "error",
-          title: "¡Error!",
-          text: message,
-          confirmButtonText: "OK",
-        });
-      } else {
+      const success = await register(formData.name, formData.email, formData.password);
+      
+      if (success) {
         Swal.fire({
           icon: "success",
           title: "¡Registro exitoso!",
@@ -73,6 +56,13 @@ const Register = () => {
           confirmButtonText: "OK",
         }).then(() => {
           navigate("/login");
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "¡Error!",
+          text: "Error al registrar usuario",
+          confirmButtonText: "OK",
         });
       }
     } catch (err) {
@@ -144,6 +134,7 @@ const Register = () => {
                     onChange={handleChange}
                     className="pl-10 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition duration-200"
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -163,6 +154,7 @@ const Register = () => {
                     onChange={handleChange}
                     className="pl-10 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition duration-200"
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -182,11 +174,13 @@ const Register = () => {
                     onChange={handleChange}
                     className="pl-10 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition duration-200"
                     required
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-600 transition-colors"
+                    disabled={loading}
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -208,40 +202,44 @@ const Register = () => {
                     onChange={handleChange}
                     className="pl-10 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition duration-200"
                     required
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-600 transition-colors"
+                    disabled={loading}
                   >
                     {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-start space-x-2">
+              <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   id="terms"
-                  className="rounded mt-1"
+                  className="rounded"
                   checked={acceptTerms}
                   onChange={handleCheckboxChange}
-                  required
+                  disabled={loading}
                 />
-                <Label htmlFor="terms" className="text-sm text-gray-600 leading-tight">
-                  Acepto los{' '}
+                <Label htmlFor="terms" className="text-sm text-gray-600">
+                  Acepto los{" "}
                   <Button
                     variant="link"
-                    className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm"
-                    onClick={() => navigate('/terms-and-conditions')}
+                    onClick={() => navigate("/terms-and-conditions")}
+                    className="text-primary-600 hover:text-primary-700 p-0 text-sm"
+                    disabled={loading}
                   >
                     términos y condiciones
-                  </Button>{' '}
-                  y la{' '}
+                  </Button>{" "}
+                  y la{" "}
                   <Button
                     variant="link"
-                    className="text-primary-600 hover:text-primary-700 p-0 h-auto text-sm"
                     onClick={() => navigate("/privacy-policy")}
+                    className="text-primary-600 hover:text-primary-700 p-0 text-sm"
+                    disabled={loading}
                   >
                     política de privacidad
                   </Button>
@@ -251,9 +249,9 @@ const Register = () => {
               <Button
                 type="submit"
                 className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg transition duration-200"
-                disabled={!isFormValid()} // Deshabilitar el botón si el formulario no es válido
+                disabled={!isFormValid() || loading}
               >
-                {loading ? "Registrando..." : "Crear Cuenta"}
+                {loading ? "Creando cuenta..." : "Crear cuenta"}
               </Button>
             </form>
 
@@ -264,6 +262,7 @@ const Register = () => {
                   variant="link"
                   onClick={() => navigate("/login")}
                   className="text-primary-600 hover:text-primary-700 p-0 font-medium transition-colors"
+                  disabled={loading}
                 >
                   Inicia sesión aquí
                 </Button>

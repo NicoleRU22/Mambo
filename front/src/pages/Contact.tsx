@@ -1,11 +1,11 @@
 // src/pages/Contact.tsx
-import React from 'react'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Phone, Smartphone, Mail, MapPin } from 'lucide-react'
+import React from "react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Phone, Smartphone, Mail, MapPin } from "lucide-react";
 
 const Contact = () => {
   return (
@@ -15,23 +15,22 @@ const Contact = () => {
       <main className="flex-1 container mx-auto px-4 py-16">
         {/* Banner */}
         <section className="mb-16 relative">
-        {/* Fondo degradado */}
-        <div className="h-48 md:h-64 bg-gradient-to-br from-primary-600 to-primary-500 rounded-lg"></div>
-        {/* Overlay de contenido */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+          {/* Fondo degradado */}
+          <div className="h-48 md:h-64 bg-gradient-to-br from-primary-600 to-primary-500 rounded-lg"></div>
+          {/* Overlay de contenido */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
             <h1 className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-lg">
-            Contáctanos
+              Contáctanos
             </h1>
             <div className="mt-6 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg p-6 max-w-2xl">
-            <p className="text-gray-800 text-center text-lg md:text-xl leading-relaxed">
-                ¿Tienes preguntas, sugerencias o necesitas ayuda?  
+              <p className="text-gray-800 text-center text-lg md:text-xl leading-relaxed">
+                ¿Tienes preguntas, sugerencias o necesitas ayuda?
                 <br />
-                Nuestro equipo está listo para asistirte.  
-            </p>
+                Nuestro equipo está listo para asistirte.
+              </p>
             </div>
-        </div>
+          </div>
         </section>
-
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact cards */}
@@ -78,14 +77,14 @@ const Contact = () => {
 
             {/* Mapa */}
             <div className="overflow-hidden rounded-xl shadow-lg">
-            <iframe
+              <iframe
                 title="Mapa Mambo Petshop"
                 src="https://maps.google.com/maps?q=MAMBO%20PETSHOP%2C%20Jhon%20Kennedy%2015%2C%20Pisco%2C%20Per%C3%BA&z=18&output=embed"
                 className="w-full h-48"
                 allowFullScreen
-                loading="lazy"/>
+                loading="lazy"
+              />
             </div>
-
           </div>
 
           {/* Formulario */}
@@ -93,8 +92,43 @@ const Contact = () => {
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">
               Envíanos un mensaje
             </h2>
+            <form
+              className="space-y-4"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const data = {
+                  name: (form.elements.namedItem("name") as HTMLInputElement)
+                    .value,
+                  email: (form.elements.namedItem("email") as HTMLInputElement)
+                    .value,
+                  subject: (
+                    form.elements.namedItem("asunto") as HTMLInputElement
+                  ).value,
+                  message: (
+                    form.elements.namedItem("mensaje") as HTMLTextAreaElement
+                  ).value,
+                };
 
-            <form className="space-y-4">
+                try {
+                  const res = await fetch("/api/contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  });
+
+                  if (res.ok) {
+                    alert("✅ Tu mensaje ha sido enviado");
+                    form.reset();
+                  } else {
+                    alert("❌ Hubo un problema al enviar tu mensaje");
+                  }
+                } catch (error) {
+                  console.error("Error al enviar contacto", error);
+                  alert("❌ Error del servidor");
+                }
+              }}
+            >
               <div>
                 <Label htmlFor="name">Nombre</Label>
                 <Input
@@ -139,7 +173,10 @@ const Contact = () => {
                 />
               </div>
 
-              <Button type="submit" className="mt-2 w-full bg-primary-600 hover:bg-primary-700">
+              <Button
+                type="submit"
+                className="mt-2 w-full bg-primary-600 hover:bg-primary-700"
+              >
                 Enviar Mensaje
               </Button>
             </form>
@@ -149,7 +186,7 @@ const Contact = () => {
 
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-export default Contact
+export default Contact;

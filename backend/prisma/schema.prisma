@@ -1,13 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
-
 
 datasource db {
   provider = "postgresql"
@@ -15,28 +8,22 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String     @unique
   password  String
-  role      Role     @default(USER)
-  phone     String? 
+  role      Role       @default(USER)
+  phone     String?
   address   String?
   city      String?
   state     String?
   zipCode   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  cartItems CartItem[]
   orders    Order[]
   reviews   Review[]
-  cartItems CartItem[]
   wishlist  Wishlist[]
-}
-
-enum Role {
-  USER
-  ADMIN
 }
 
 model Category {
@@ -45,40 +32,30 @@ model Category {
   description String?
   image       String?
   createdAt   DateTime  @default(now())
-
   products    Product[]
 }
 
 model Product {
-  id            Int        @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   name          String
   description   String?
   price         Float
   originalPrice Float?
-  stock         Int        @default(0)
+  stock         Int         @default(0)
   petType       PetType
-  images        String[]   // Array of image URLs
-  sizes         String[]   // Array of sizes (XS, S, M, L, XL)
-  rating        Float      @default(0)
-  reviewsCount  Int        @default(0)
-  isActive      Boolean    @default(true)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
+  images        String[]
+  sizes         String[]
+  rating        Float       @default(0)
+  reviewsCount  Int         @default(0)
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   categoryId    Int?
-  category      Category?  @relation(fields: [categoryId], references: [id])
-  reviews       Review[]
   cartItems     CartItem[]
   orderItems    OrderItem[]
+  category      Category?   @relation(fields: [categoryId], references: [id])
+  reviews       Review[]
   wishlist      Wishlist[]
-}
-
-enum PetType {
-  DOG
-  CAT
-  BIRD
-  FISH
-  OTHER
 }
 
 model CartItem {
@@ -87,17 +64,16 @@ model CartItem {
   size      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
   productId Int
   product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Order {
-  id              Int         @id @default(autoincrement())
-  orderNumber     String      @unique
-  status          OrderStatus @default(PENDING)
+  id              Int           @id @default(autoincrement())
+  orderNumber     String        @unique
+  status          OrderStatus   @default(PENDING)
   totalAmount     Float
   shippingAddress String
   shippingCity    String
@@ -107,12 +83,59 @@ model Order {
   paymentMethod   PaymentMethod
   paymentStatus   PaymentStatus @default(PENDING)
   notes           String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
   userId          Int?
-  user            User?        @relation(fields: [userId], references: [id])
+  user            User?         @relation(fields: [userId], references: [id])
   orderItems      OrderItem[]
+}
+
+model OrderItem {
+  id           Int      @id @default(autoincrement())
+  productName  String
+  productPrice Float
+  quantity     Int
+  size         String?
+  createdAt    DateTime @default(now())
+  orderId      Int
+  productId    Int?
+  order        Order    @relation(fields: [orderId], references: [id])
+  product      Product? @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  userId    Int
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Wishlist {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  userId    Int
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PetType {
+  DOG
+  CAT
+  BIRD
+  FISH
+  OTHER
 }
 
 enum OrderStatus {
@@ -133,42 +156,4 @@ enum PaymentStatus {
   PENDING
   PAID
   FAILED
-}
-
-model OrderItem {
-  id          Int      @id @default(autoincrement())
-  productName String
-  productPrice Float
-  quantity    Int
-  size        String?
-  createdAt   DateTime @default(now())
-
-  orderId     Int
-  order       Order    @relation(fields: [orderId], references: [id])
-  productId   Int?
-  product     Product? @relation(fields: [productId], references: [id])
-}
-
-model Review {
-  id        Int      @id @default(autoincrement())
-  rating    Int
-  comment   String?
-  createdAt DateTime @default(now())
-
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  productId Int
-  product   Product  @relation(fields: [productId], references: [id])
-}
-
-model Wishlist {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  productId Int
-  product   Product  @relation(fields: [productId], references: [id])
-
-  @@unique([userId, productId])
 }

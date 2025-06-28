@@ -1,5 +1,6 @@
 {
   "name": "mambo-petshop-backend",
+  "type": "module",
   "version": "1.0.0",
   "description": "Backend API para Mambo PetShop",
   "main": "src/server.js",
@@ -48,6 +49,7 @@
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.4",
     "@tanstack/react-query": "^5.56.2",
+    "axios": "^1.10.0",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -61,6 +63,7 @@
     "express-validator": "^7.0.1",
     "helmet": "^8.0.0",
     "input-otp": "^1.2.4",
+    "jose": "^6.0.11",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.462.0",
     "morgan": "^1.10.0",

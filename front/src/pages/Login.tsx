@@ -5,47 +5,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2"; // Importa SweetAlert2
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"; // Asegúrate de que la URL sea correcta
+import { useAuth } from "@/contexts/AuthContext";
+import Swal from "sweetalert2";
+import axios from "axios";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false); // Estado para "Recordarme"
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Función para enviar el formulario de login
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Llamada a la API para verificar las credenciales
+    setIsLoading(true);
+
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const loggedUser = await login(email, password);
+      console.log("👤 Usuario logueado:", loggedUser);
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // Si el login es exitoso
+      if (loggedUser) {
         Swal.fire({
           title: "¡Éxito!",
           text: "Bienvenido de nuevo.",
           icon: "success",
           confirmButtonText: "Aceptar",
         }).then(() => {
-          // Redirigir al inicio
-          navigate("/");
+          if (loggedUser.role?.toLowerCase() === "admin") {
+            navigate("/admin");
+          } else {
+            navigate("/catalog");
+          }
         });
       } else {
-        // Si las credenciales son incorrectas
         Swal.fire({
           title: "Error",
-          text: data.error || "Correo o contraseña incorrectos.",
+          text: "Correo o contraseña incorrectos.",
           icon: "error",
           confirmButtonText: "Intentar de nuevo",
         });
@@ -57,11 +55,13 @@ const Login = () => {
         icon: "error",
         confirmButtonText: "Intentar de nuevo",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const isFormValid = () => {
-    return email && password; // Verificar si los campos de correo y contraseña no están vacíos
+    return email && password;
   };
 
   return (
@@ -113,6 +113,7 @@ const Login = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition duration-200"
                     required
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -134,11 +135,13 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition duration-200"
                     required
+                    disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-600 transition-colors"
+                    disabled={isLoading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -156,7 +159,8 @@ const Login = () => {
                     id="remember"
                     className="rounded"
                     checked={rememberMe}
-                    onChange={() => setRememberMe(!rememberMe)} // Cambio de estado para "Recordarme"
+                    onChange={() => setRememberMe(!rememberMe)}
+                    disabled={isLoading}
                   />
                   <Label htmlFor="remember" className="text-sm text-gray-600">
                     Recordarme
@@ -165,6 +169,7 @@ const Login = () => {
                 <Button
                   variant="link"
                   className="text-sm text-primary-600 hover:text-primary-700 p-0 transition-colors"
+                  disabled={isLoading}
                 >
                   ¿Olvidaste tu contraseña?
                 </Button>
@@ -173,9 +178,9 @@ const Login = () => {
               <Button
                 type="submit"
                 className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg transition duration-200"
-                disabled={!isFormValid()} // Deshabilitar el botón si el formulario no es válido
+                disabled={!isFormValid() || isLoading}
               >
-                Iniciar Sesión
+                {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
 
@@ -186,6 +191,7 @@ const Login = () => {
                   variant="link"
                   onClick={() => navigate("/register")}
                   className="text-primary-600 hover:text-primary-700 p-0 font-medium transition-colors"
+                  disabled={isLoading}
                 >
                   Regístrate aquí
                 </Button>

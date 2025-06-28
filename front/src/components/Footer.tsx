@@ -1,11 +1,12 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa'
-
+import { FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
+  const navigate = useNavigate();
+
   return (
     <footer className="bg-gray-900 text-white">
       {/* Newsletter section */}
@@ -22,7 +23,11 @@ const Footer = () => {
                 placeholder="Tu email"
                 className="bg-white text-gray-900 border-0 flex-1"
               />
-              <Button variant="secondary" className="bg-secondary-500 hover:bg-secondary-600 text-white px-6">
+              <Button 
+                variant="secondary" 
+                className="bg-secondary-500 hover:bg-secondary-600 text-white px-6"
+                onClick={() => navigate('/newsletter')}
+              >
                 Suscribirse
               </Button>
             </div>
@@ -78,11 +83,11 @@ const Footer = () => {
             <div>
               <h4 className="text-lg font-semibold mb-4">Enlaces Rápidos</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Inicio</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Productos</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Ofertas</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contacto</a></li>
+                <li><button onClick={() => navigate('/')} className="text-gray-400 hover:text-white transition-colors">Inicio</button></li>
+                <li><button onClick={() => navigate('/catalog')} className="text-gray-400 hover:text-white transition-colors">Productos</button></li>
+                <li><button onClick={() => navigate('/ofertas')} className="text-gray-400 hover:text-white transition-colors">Ofertas</button></li>
+                <li><button onClick={() => navigate('/blog')} className="text-gray-400 hover:text-white transition-colors">Blog</button></li>
+                <li><button onClick={() => navigate('/contact')} className="text-gray-400 hover:text-white transition-colors">Contacto</button></li>
               </ul>
             </div>
 
@@ -90,10 +95,10 @@ const Footer = () => {
             <div>
               <h4 className="text-lg font-semibold mb-4">Categorías</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Ropas</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Alimento</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Juguetes</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Accesorios</a></li>
+                <li><button onClick={() => navigate('/catalog?category=ropas')} className="text-gray-400 hover:text-white transition-colors">Ropas</button></li>
+                <li><button onClick={() => navigate('/catalog?category=alimento')} className="text-gray-400 hover:text-white transition-colors">Alimento</button></li>
+                <li><button onClick={() => navigate('/catalog?category=juguetes')} className="text-gray-400 hover:text-white transition-colors">Juguetes</button></li>
+                <li><button onClick={() => navigate('/catalog?category=accesorios')} className="text-gray-400 hover:text-white transition-colors">Accesorios</button></li>
               </ul>
             </div>
 
@@ -134,9 +139,9 @@ const Footer = () => {
               © 2024 Mambo Petshop. Todos los derechos reservados.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Términos de Servicio</a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Devoluciones</a>
+              <button onClick={() => navigate('/privacy-policy')} className="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</button>
+              <button onClick={() => navigate('/terms-of-service')} className="text-gray-400 hover:text-white text-sm transition-colors">Términos de Servicio</button>
+              <button onClick={() => navigate('/devoluciones')} className="text-gray-400 hover:text-white text-sm transition-colors">Devoluciones</button>
             </div>
           </div>
         </div>

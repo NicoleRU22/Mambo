@@ -2,7 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -16,7 +18,16 @@ import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import AboutUs from "./pages/AboutUs";
 import ProductDetail from "./pages/ProductDetail";
+<<<<<<< HEAD
 import AdminContact from '@/components/admin/AdminContact';
+=======
+import Profile from "./pages/Profile";
+import Orders from "./pages/Orders";
+import Ofertas from "./pages/Ofertas";
+import Devoluciones from "./pages/Devoluciones";
+import TermsOfService from "./pages/TermsOfService";
+import Newsletter from "./pages/Newsletter";
+>>>>>>> 1fd8e62f005943fdf2a73f186cb827e8710091cb
 
 // Importar las nuevas páginas
 import TermsAndConditions from "./pages/Terms-and-conditions";
@@ -26,10 +37,12 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+
+        {/* ❌ QUITA el <BrowserRouter> aquí */}
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
@@ -38,19 +51,67 @@ const App = () => (
           <Route path="/contact" element={<Contact />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/aboutus" element={<AboutUs />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/ofertas" element={<Ofertas />} />
+          <Route path="/devoluciones" element={<Devoluciones />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/newsletter" element={<Newsletter />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          <Route
+            path="/terms-and-conditions"
+            element={<TermsAndConditions />}
+          />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+<<<<<<< HEAD
           <Route path="/admin/contactos" element={<AdminContact />} />
 
+=======
+>>>>>>> 1fd8e62f005943fdf2a73f186cb827e8710091cb
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+        {/* ❌ FIN del BrowserRouter */}
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

@@ -385,6 +385,7 @@ const AdminDashboard = () => {
         {activeSection === "Contacto" && <AdminContact />}
         {activeSection === "Perfil" && <AdminProfilePanel />}
         {activeSection === "Configuración" && <AdminSettingsPanel />}
+        {activeSection === "Quejas y Sugerencias" && <AdminContact />}
 
       </div>
     </div>

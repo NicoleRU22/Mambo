@@ -1,7 +1,6 @@
 import express from 'express';
 import prisma from '../config/prismaClient.js';
-import pkg from '@prisma/client';
-const { OrderStatus } = pkg;
+import { OrderStatus } from '@prisma/client';
 import { validateId } from '../middleware/validation.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 

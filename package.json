@@ -34,7 +34,9 @@
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "multer": "^2.0.1",
-    "sweetalert2": "^11.22.1",
-    "xlsx": "^0.18.7"
+    "sweetalert2": "^11.22.1"
+  },
+  "overrides": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   }
 }

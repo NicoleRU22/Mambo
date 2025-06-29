@@ -113,5 +113,3 @@ Thumbs.db
 src/uploads/*
 !src/uploads/.gitkeep 
 /generated/prisma
-
-/src/generated/prisma

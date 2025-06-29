@@ -9,9 +9,9 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash } from 'lucide-react'; // Importa los íconos para Editar y Eliminar
+import { Edit, Trash } from 'lucide-react'; 
 
-interface Cliente {
+interface Usuario {
   id: number;
   name: string;
   email: string;
@@ -19,8 +19,8 @@ interface Cliente {
   createdAt: string;
 }
 
-export const ClientesPanel = () => {
-  const clientes: Cliente[] = [
+export const UsuariosPanel = () => {
+  const usuarios: Usuario[] = [
     {
       id: 1,
       name: 'Juan Pérez',
@@ -44,16 +44,16 @@ export const ClientesPanel = () => {
     },
   ];
 
-  // Función para editar un cliente (por ejemplo, mostrar un modal o redirigir a una página de edición)
+  // Función para editar un usuario (por ejemplo, mostrar un modal o redirigir a una página de edición)
   const handleEdit = (id: number) => {
-    alert(`Editar cliente con ID: ${id}`);
+    alert(`Editar usuario con ID: ${id}`);
   };
 
-  // Función para eliminar un cliente (por ejemplo, mostrar un mensaje de confirmación antes de eliminar)
+  // Función para eliminar un usuario (por ejemplo, mostrar un mensaje de confirmación antes de eliminar)
   const handleDelete = (id: number) => {
-    const isConfirmed = window.confirm('¿Estás seguro de que deseas eliminar este cliente?');
+    const isConfirmed = window.confirm('¿Estás seguro de que deseas eliminar este usuario?');
     if (isConfirmed) {
-      alert(`Cliente con ID: ${id} eliminado.`);
+      alert(`Usuario con ID: ${id} eliminado.`);
     }
   };
 
@@ -81,29 +81,29 @@ export const ClientesPanel = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {clientes.map((cliente) => (
+                {usuarios.map((usuario) => (
                   <TableRow
-                    key={cliente.id}
+                    key={usuario.id}
                     className="hover:bg-gray-50 transition-colors"
                   >
-                    <TableCell>{cliente.id}</TableCell>
+                    <TableCell>{usuario.id}</TableCell>
                     <TableCell className="font-medium text-gray-900">
-                      {cliente.name}
+                      {usuario.name}
                     </TableCell>
-                    <TableCell>{cliente.email}</TableCell>
+                    <TableCell>{usuario.email}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          cliente.role === 'admin'
+                          usuario.role === 'admin'
                             ? 'bg-purple-100 text-purple-800'
                             : 'bg-blue-100 text-blue-800'
                         }`}
                       >
-                        {cliente.role === 'admin' ? 'Admin' : 'User'}
+                        {usuario.role === 'admin' ? 'Admin' : 'User'}
                       </span>
                     </TableCell>
                     <TableCell>
-                      {new Date(cliente.createdAt).toLocaleDateString('es-PE', {
+                      {new Date(usuario.createdAt).toLocaleDateString('es-PE', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -114,7 +114,7 @@ export const ClientesPanel = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleEdit(cliente.id)}
+                          onClick={() => handleEdit(usuario.id)}
                           className="transition-all duration-200 hover:bg-blue-100 hover:text-blue-600"
                         >
                           <Edit className="h-4 w-4 mr-2" />
@@ -124,7 +124,7 @@ export const ClientesPanel = () => {
                           variant="outline"
                           size="sm"
                           className="text-red-500 hover:bg-red-100 hover:text-red-600 transition-all duration-200"
-                          onClick={() => handleDelete(cliente.id)}
+                          onClick={() => handleDelete(usuario.id)}
                         >
                           <Trash className="h-4 w-4 mr-2" />
                           Eliminar
@@ -139,32 +139,32 @@ export const ClientesPanel = () => {
 
           {/* Para pantallas pequeñas */}
           <div className="md:hidden space-y-4">
-            {clientes.map((cliente) => (
+            {usuarios.map((usuario) => (
               <div
-                key={cliente.id}
+                key={usuario.id}
                 className="border rounded-lg p-4 shadow-sm bg-gray-50"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold text-lg text-gray-900">{cliente.name}</h3>
+                  <h3 className="font-semibold text-lg text-gray-900">{usuario.name}</h3>
                   <span
                     className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      cliente.role === 'admin'
+                      usuario.role === 'admin'
                         ? 'bg-purple-100 text-purple-800'
                         : 'bg-blue-100 text-blue-800'
                     }`}
                   >
-                    {cliente.role === 'admin' ? 'Admin' : 'User'}
+                    {usuario.role === 'admin' ? 'Admin' : 'User'}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  <strong>ID:</strong> {cliente.id}
+                  <strong>ID:</strong> {usuario.id}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <strong>Correo:</strong> {cliente.email}
+                  <strong>Correo:</strong> {usuario.email}
                 </p>
                 <p className="text-sm text-gray-600">
                   <strong>Creado:</strong>{' '}
-                  {new Date(cliente.createdAt).toLocaleDateString('es-PE', {
+                  {new Date(usuario.createdAt).toLocaleDateString('es-PE', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
@@ -174,7 +174,7 @@ export const ClientesPanel = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEdit(cliente.id)}
+                    onClick={() => handleEdit(usuario.id)}
                     className="transition-all duration-200 hover:bg-blue-100 hover:text-blue-600"
                   >
                     <Edit className="h-4 w-4 mr-2" />
@@ -184,7 +184,7 @@ export const ClientesPanel = () => {
                     variant="outline"
                     size="sm"
                     className="text-red-500 hover:bg-red-100 hover:text-red-600 transition-all duration-200"
-                    onClick={() => handleDelete(cliente.id)}
+                    onClick={() => handleDelete(usuario.id)}
                   >
                     <Trash className="h-4 w-4 mr-2" />
                     Eliminar

@@ -1,5 +1,6 @@
 import express from 'express';
-import { query } from '../config/database.js';
+import prisma from '../config/prismaClient.js';
+import { OrderStatus } from '@prisma/client';
 import { validateId } from '../middleware/validation.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
@@ -11,30 +12,17 @@ router.get('/', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     const { page = 1, limit = 10, status } = req.query;
 
-    let sql = 'SELECT * FROM orders WHERE user_id = ?';
-    const params = [userId];
+    const where = { userId };
+    if (status) where.status = status;
 
-    if (status) {
-      sql += ' AND status = ?';
-      params.push(status);
-    }
+    const orders = await prisma.order.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      take: parseInt(limit),
+    });
 
-    sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
-
-    const orders = await query(sql, params);
-
-    // Contar total de pedidos
-    let countSql = 'SELECT COUNT(*) as total FROM orders WHERE user_id = ?';
-    const countParams = [userId];
-    
-    if (status) {
-      countSql += ' AND status = ?';
-      countParams.push(status);
-    }
-
-    const [countResult] = await query(countSql, countParams);
-    const total = countResult.total;
+    const total = await prisma.order.count({ where });
 
     res.json({
       orders,
@@ -42,8 +30,8 @@ router.get('/', authenticateToken, async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total,
-        pages: Math.ceil(total / parseInt(limit))
-      }
+        pages: Math.ceil(total / parseInt(limit)),
+      },
     });
   } catch (error) {
     console.error('Get orders error:', error);
@@ -57,25 +45,21 @@ router.get('/:id', authenticateToken, validateId, async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    // Obtener pedido
-    const [order] = await query(
-      'SELECT * FROM orders WHERE id = ? AND user_id = ?',
-      [id, userId]
-    );
+    const order = await prisma.order.findFirst({
+      where: { id: parseInt(id), userId },
+    });
 
     if (!order) {
       return res.status(404).json({ error: 'Pedido no encontrado' });
     }
 
-    // Obtener items del pedido
-    const orderItems = await query(
-      'SELECT * FROM order_items WHERE order_id = ?',
-      [id]
-    );
+    const orderItems = await prisma.orderItem.findMany({
+      where: { orderId: parseInt(id) },
+    });
 
     res.json({
       order,
-      items: orderItems
+      items: orderItems,
     });
   } catch (error) {
     console.error('Get order details error:', error);
@@ -88,59 +72,43 @@ router.get('/admin/all', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 20, status, search } = req.query;
 
-    let sql = `
-      SELECT o.*, u.name as customer_name, u.email as customer_email
-      FROM orders o
-      LEFT JOIN users u ON o.user_id = u.id
-      WHERE 1=1
-    `;
-    const params = [];
-
-    if (status) {
-      sql += ' AND o.status = ?';
-      params.push(status);
-    }
-
+    const where = {};
+    if (status) where.status = status;
     if (search) {
-      sql += ' AND (o.order_number LIKE ? OR u.name LIKE ? OR u.email LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      where.OR = [
+        { orderNumber: { contains: search } },
+        { user: { name: { contains: search } } },
+        { user: { email: { contains: search } } },
+      ];
     }
 
-    sql += ' ORDER BY o.created_at DESC LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
+    const orders = await prisma.order.findMany({
+      where,
+      include: {
+        user: { select: { name: true, email: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      take: parseInt(limit),
+    });
 
-    const orders = await query(sql, params);
+    const total = await prisma.order.count({ where });
 
-    // Contar total
-    let countSql = `
-      SELECT COUNT(*) as total
-      FROM orders o
-      LEFT JOIN users u ON o.user_id = u.id
-      WHERE 1=1
-    `;
-    const countParams = [];
-
-    if (status) {
-      countSql += ' AND o.status = ?';
-      countParams.push(status);
-    }
-
-    if (search) {
-      countSql += ' AND (o.order_number LIKE ? OR u.name LIKE ? OR u.email LIKE ?)';
-      countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
-    }
-
-    const [countResult] = await query(countSql, countParams);
-    const total = countResult.total;
+    // Map orders to include customer_name and customer_email
+    const mappedOrders = orders.map(order => ({
+      ...order,
+      customer_name: order.user?.name,
+      customer_email: order.user?.email,
+    }));
 
     res.json({
-      orders,
+      orders: mappedOrders,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
         total,
-        pages: Math.ceil(total / parseInt(limit))
-      }
+        pages: Math.ceil(total / parseInt(limit)),
+      },
     });
   } catch (error) {
     console.error('Get all orders error:', error);
@@ -153,27 +121,29 @@ router.get('/admin/:id', authenticateToken, requireAdmin, validateId, async (req
   try {
     const { id } = req.params;
 
-    // Obtener pedido con datos del cliente
-    const [order] = await query(`
-      SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
-      FROM orders o
-      LEFT JOIN users u ON o.user_id = u.id
-      WHERE o.id = ?
-    `, [id]);
+    const order = await prisma.order.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        user: { select: { name: true, email: true, phone: true } },
+      },
+    });
 
     if (!order) {
       return res.status(404).json({ error: 'Pedido no encontrado' });
     }
 
-    // Obtener items del pedido
-    const orderItems = await query(
-      'SELECT * FROM order_items WHERE order_id = ?',
-      [id]
-    );
+    const orderItems = await prisma.orderItem.findMany({
+      where: { orderId: parseInt(id) },
+    });
 
     res.json({
-      order,
-      items: orderItems
+      order: {
+        ...order,
+        customer_name: order.user?.name,
+        customer_email: order.user?.email,
+        customer_phone: order.user?.phone,
+      },
+      items: orderItems,
     });
   } catch (error) {
     console.error('Get admin order details error:', error);
@@ -192,26 +162,20 @@ router.put('/:id/status', authenticateToken, requireAdmin, validateId, async (re
       return res.status(400).json({ error: 'Estado inválido' });
     }
 
-    // Verificar que el pedido existe
-    const [order] = await query(
-      'SELECT id, status FROM orders WHERE id = ?',
-      [id]
-    );
-
+    const order = await prisma.order.findUnique({ where: { id: parseInt(id) } });
     if (!order) {
       return res.status(404).json({ error: 'Pedido no encontrado' });
     }
 
-    // Actualizar estado
-    await query(
-      'UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [status, id]
-    );
+    await prisma.order.update({
+      where: { id: parseInt(id) },
+      data: { status, updatedAt: new Date() },
+    });
 
-    res.json({ 
+    res.json({
       message: 'Estado del pedido actualizado',
       order_id: id,
-      new_status: status
+      new_status: status,
     });
   } catch (error) {
     console.error('Update order status error:', error);
@@ -223,43 +187,53 @@ router.put('/:id/status', authenticateToken, requireAdmin, validateId, async (re
 router.get('/stats/summary', authenticateToken, requireAdmin, async (req, res) => {
   try {
     // Total de pedidos
-    const [totalOrders] = await query('SELECT COUNT(*) as total FROM orders');
-    
+    const totalOrders = await prisma.order.count();
+
     // Pedidos por estado
-    const ordersByStatus = await query(`
-      SELECT status, COUNT(*) as count 
-      FROM orders 
-      GROUP BY status
-    `);
+    const ordersByStatus = await prisma.order.groupBy({
+      by: ['status'],
+      _count: { status: true },
+    });
 
     // Ventas totales
-    const [totalSales] = await query('SELECT SUM(total_amount) as total FROM orders WHERE status != "cancelled"');
-    
+    const totalSalesResult = await prisma.order.aggregate({
+      _sum: { totalAmount: true },
+      where: { status: { not: OrderStatus.cancelled } },
+    });
+    const totalSales = totalSalesResult._sum.totalAmount || 0;
+
     // Pedidos del mes actual
-    const [monthlyOrders] = await query(`
-      SELECT COUNT(*) as total 
-      FROM orders 
-      WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) 
-      AND YEAR(created_at) = YEAR(CURRENT_DATE())
-    `);
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const monthlyOrders = await prisma.order.count({
+      where: {
+        createdAt: { gte: firstDay, lte: lastDay },
+      },
+    });
 
     // Ventas del mes actual
-    const [monthlySales] = await query(`
-      SELECT SUM(total_amount) as total 
-      FROM orders 
-      WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) 
-      AND YEAR(created_at) = YEAR(CURRENT_DATE())
-      AND status != "cancelled"
-    `);
+    const monthlySalesResult = await prisma.order.aggregate({
+      _sum: { totalAmount: true },
+      where: {
+        createdAt: { gte: firstDay, lte: lastDay },
+        status: { not: OrderStatus.cancelled },
+      },
+    });
+    const monthlySales = monthlySalesResult._sum.totalAmount || 0;
 
     res.json({
       summary: {
-        total_orders: totalOrders.total,
-        total_sales: parseFloat(totalSales.total || 0).toFixed(2),
-        monthly_orders: monthlyOrders.total,
-        monthly_sales: parseFloat(monthlySales.total || 0).toFixed(2)
+        total_orders: totalOrders,
+        total_sales: totalSales.toFixed(2),
+        monthly_orders: monthlyOrders,
+        monthly_sales: monthlySales.toFixed(2),
       },
-      orders_by_status: ordersByStatus
+      orders_by_status: ordersByStatus.map(s => ({
+        status: s.status,
+        count: s._count.status,
+      })),
     });
   } catch (error) {
     console.error('Get order stats error:', error);

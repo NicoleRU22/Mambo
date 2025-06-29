@@ -1,3 +1,5 @@
+// backend/src/middleware/validation.js
+
 import { body, param, query, validationResult } from "express-validator";
 
 // Middleware para manejar errores de validación

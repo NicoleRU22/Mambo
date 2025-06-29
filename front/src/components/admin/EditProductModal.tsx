@@ -8,18 +8,35 @@ import { ProductEditForm } from './ProductEditForm';
 interface Product {
   id: number;
   name: string;
-  category: string;
-  price: string;
+  description?: string;
+  price: number;
+  originalPrice?: number;
   stock: number;
-  status: string;
-  image: string;
+  petType: string;
+  images: string[];
+  sizes: string[];
+  categoryId?: number;
+  category?: {
+    id: number;
+    name: string;
+  };
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  description?: string;
 }
 
 interface EditProductModalProps {
   open: boolean;
   onClose: () => void;
   product: Product | null;
-  onUpdate: (updatedProduct: Product) => void;
+  onUpdate: (updatedProduct: Product) => Promise<void>;
+  categories: Category[];
 }
 
 export const EditProductModal: React.FC<EditProductModalProps> = ({
@@ -27,6 +44,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
   onClose,
   product,
   onUpdate,
+  categories,
 }) => {
   if (!product) return null;
 
@@ -35,7 +53,12 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
       <DialogContent
         className="max-w-[95vw] md:max-w-5xl w-full max-h-[90vh] overflow-y-auto rounded-xl p-4"
       >
-        <ProductEditForm product={product} onCancel={onClose} onSave={onUpdate} />
+        <ProductEditForm 
+          product={product} 
+          onCancel={onClose} 
+          onSave={onUpdate} 
+          categories={categories}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -62,12 +62,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         const data = await res.json();
 
-        if (res.ok) {
-          setUser(data);
-          navigate(data.role === "ADMIN" ? "/admin" : "/catalog");
+        if (res.ok && data.user) {
+          setUser(data.user);
+          // Solo redirige si ya estás en login/register
+          if (
+            window.location.pathname === "/auth/login" ||
+            window.location.pathname === "/auth/register"
+          ) {
+            navigate(data.user.role === "ADMIN" ? "/admin" : "/catalog");
+          }
+        } else {
+          throw new Error("No autorizado");
         }
       } catch (error) {
         console.error("Error verificando usuario:", error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -148,7 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     isLoading,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -39,7 +39,9 @@ export const authenticateToken = async (req, res, next) => {
 };
 
 export const requireAdmin = (req, res, next) => {
-  if (req.user.role !== "admin") {
+  console.log("Usuario autenticado:", req.user); // 🔍
+
+  if (req.user.role.toLowerCase() !== "admin") {
     return res.status(403).json({ error: "Admin access required" });
   }
   next();

@@ -1,6 +1,6 @@
 import express from "express";
 import bcrypt from "bcryptjs";
-import { query } from "../config/database.js";
+import prisma from "../config/prismaClient.js";
 import { validateId } from "../middleware/validation.js";
 import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 
@@ -10,16 +10,24 @@ const router = express.Router();
 router.get("/profile", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-
-    const [user] = await query(
-      "SELECT id, name, email, role, phone, address, city, state, zip_code, created_at FROM users WHERE id = ?",
-      [userId]
-    );
-
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        city: true,
+        state: true,
+        zip_code: true,
+        created_at: true,
+      },
+    });
     if (!user) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
-
     res.json({ user });
   } catch (error) {
     console.error("Get profile error:", error);
@@ -32,27 +40,33 @@ router.put("/profile", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { name, phone, address, city, state, zip_code } = req.body;
-
-    await query(
-      `
-      UPDATE users 
-      SET name = COALESCE(?, name),
-          phone = COALESCE(?, phone),
-          address = COALESCE(?, address),
-          city = COALESCE(?, city),
-          state = COALESCE(?, state),
-          zip_code = COALESCE(?, zip_code),
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `,
-      [name, phone, address, city, state, zip_code, userId]
-    );
-
-    const [updatedUser] = await query(
-      "SELECT id, name, email, role, phone, address, city, state, zip_code, created_at FROM users WHERE id = ?",
-      [userId]
-    );
-
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name,
+        phone,
+        address,
+        city,
+        state,
+        zip_code,
+        updated_at: new Date(),
+      },
+    });
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        created_at: true,
+      },
+    });
     res.json({
       message: "Perfil actualizado exitosamente",
       user: updatedUser,
@@ -68,27 +82,20 @@ router.put("/password", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { currentPassword, newPassword } = req.body;
-
     if (!currentPassword || !newPassword) {
       return res
         .status(400)
         .json({ error: "Contraseña actual y nueva contraseña requeridas" });
     }
-
     if (newPassword.length < 6) {
-      return res
-        .status(400)
-        .json({
-          error: "La nueva contraseña debe tener al menos 6 caracteres",
-        });
+      return res.status(400).json({
+        error: "La nueva contraseña debe tener al menos 6 caracteres",
+      });
     }
-
-    // Obtener contraseña actual
-    const [user] = await query("SELECT password FROM users WHERE id = ?", [
-      userId,
-    ]);
-
-    // Verificar contraseña actual
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
     const isValidPassword = await bcrypt.compare(
       currentPassword,
       user.password
@@ -96,17 +103,12 @@ router.put("/password", authenticateToken, async (req, res) => {
     if (!isValidPassword) {
       return res.status(400).json({ error: "Contraseña actual incorrecta" });
     }
-
-    // Encriptar nueva contraseña
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-    // Actualizar contraseña
-    await query(
-      "UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-      [hashedPassword, userId]
-    );
-
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword, updated_at: new Date() },
+    });
     res.json({ message: "Contraseña actualizada exitosamente" });
   } catch (error) {
     console.error("Change password error:", error);
@@ -114,45 +116,41 @@ router.put("/password", authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/users/admin/all - Obtener todos los usuarios (solo admin)
+// GET /api/users/admin/all - Obtener todos los usuarios
 router.get("/admin/all", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 20, search, role } = req.query;
+    console.log("🔍 Parámetros recibidos:", { page, limit, search, role });
 
-    let sql = "SELECT id, name, email, role, created_at FROM users WHERE 1=1";
-    const params = [];
-
-    if (search) {
-      sql += " AND (name LIKE ? OR email LIKE ?)";
-      params.push(`%${search}%`, `%${search}%`);
+    const where = {};
+    if (search && search.trim()) {
+      where.OR = [
+        { name: { contains: search.trim(), mode: "insensitive" } },
+        { email: { contains: search.trim(), mode: "insensitive" } },
+      ];
     }
 
-    if (role) {
-      sql += " AND role = ?";
-      params.push(role);
+    if (role && ["admin", "client"].includes(role)) {
+      where.role = role;
     }
 
-    sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-    params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
+    console.log("📦 Filtro where:", where);
 
-    const users = await query(sql, params);
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true, // 👈 Revisa este nombre
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      take: parseInt(limit),
+    });
 
-    // Contar total
-    let countSql = "SELECT COUNT(*) as total FROM users WHERE 1=1";
-    const countParams = [];
-
-    if (search) {
-      countSql += " AND (name LIKE ? OR email LIKE ?)";
-      countParams.push(`%${search}%`, `%${search}%`);
-    }
-
-    if (role) {
-      countSql += " AND role = ?";
-      countParams.push(role);
-    }
-
-    const [countResult] = await query(countSql, countParams);
-    const total = countResult.total;
+    const total = await prisma.user.count({ where });
 
     res.json({
       users,
@@ -164,8 +162,10 @@ router.get("/admin/all", authenticateToken, requireAdmin, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get all users error:", error);
-    res.status(500).json({ error: "Error al obtener usuarios" });
+    console.error("❌ Error interno en /admin/all:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Error al obtener usuarios" });
   }
 });
 
@@ -178,11 +178,25 @@ router.get(
   async (req, res) => {
     try {
       const { id } = req.params;
+      console.log("🧩 Obteniendo usuario con ID:", id);
 
-      const [user] = await query(
-        "SELECT id, name, email, role, phone, address, city, state, zip_code, created_at FROM users WHERE id = ?",
-        [id]
-      );
+      const user = await prisma.user.findUnique({
+        where: { id: parseInt(id) },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          phone: true,
+          address: true,
+          city: true,
+          state: true,
+          zipCode: true,
+          createdAt: true,
+        },
+      });
+
+      console.log("✅ Usuario encontrado:", user);
 
       if (!user) {
         return res.status(404).json({ error: "Usuario no encontrado" });
@@ -190,7 +204,7 @@ router.get(
 
       res.json({ user });
     } catch (error) {
-      console.error("Get user by ID error:", error);
+      console.error("❌ Get user by ID error:", error); // Aquí deberías ver el error real
       res.status(500).json({ error: "Error al obtener usuario" });
     }
   }
@@ -207,52 +221,56 @@ router.put(
       const { id } = req.params;
       const { name, email, role, phone, address, city, state, zip_code } =
         req.body;
-
       // Verificar que el usuario existe
-      const [existingUser] = await query("SELECT id FROM users WHERE id = ?", [
-        id,
-      ]);
-
+      const existingUser = await prisma.user.findUnique({
+        where: { id: parseInt(id) },
+      });
       if (!existingUser) {
         return res.status(404).json({ error: "Usuario no encontrado" });
       }
-
       // Verificar que el email no esté en uso por otro usuario
       if (email) {
-        const [emailUser] = await query(
-          "SELECT id FROM users WHERE email = ? AND id != ?",
-          [email, id]
-        );
-
+        const emailUser = await prisma.user.findFirst({
+          where: {
+            email,
+            NOT: { id: parseInt(id) },
+          },
+        });
         if (emailUser) {
           return res.status(400).json({ error: "Email ya está en uso" });
         }
       }
-
       // Actualizar usuario
-      await query(
-        `
-      UPDATE users 
-      SET name = COALESCE(?, name),
-          email = COALESCE(?, email),
-          role = COALESCE(?, role),
-          phone = COALESCE(?, phone),
-          address = COALESCE(?, address),
-          city = COALESCE(?, city),
-          state = COALESCE(?, state),
-          zip_code = COALESCE(?, zip_code),
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `,
-        [name, email, role, phone, address, city, state, zip_code, id]
-      );
-
+      await prisma.user.update({
+        where: { id: parseInt(id) },
+        data: {
+          name,
+          email,
+          role,
+          phone,
+          address,
+          city,
+          state,
+          zip_code,
+          updated_at: new Date(),
+        },
+      });
       // Obtener usuario actualizado
-      const [updatedUser] = await query(
-        "SELECT id, name, email, role, phone, address, city, state, zip_code, created_at FROM users WHERE id = ?",
-        [id]
-      );
-
+      const updatedUser = await prisma.user.findUnique({
+        where: { id: parseInt(id) },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          phone: true,
+          address: true,
+          city: true,
+          state: true,
+          zip_code: true,
+          created_at: true,
+        },
+      });
       res.json({
         message: "Usuario actualizado exitosamente",
         user: updatedUser,
@@ -273,34 +291,26 @@ router.delete(
   async (req, res) => {
     try {
       const { id } = req.params;
-
       // Verificar que el usuario existe
-      const [existingUser] = await query(
-        "SELECT id, role FROM users WHERE id = ?",
-        [id]
-      );
-
+      const existingUser = await prisma.user.findUnique({
+        where: { id: parseInt(id) },
+      });
       if (!existingUser) {
         return res.status(404).json({ error: "Usuario no encontrado" });
       }
-
       // No permitir eliminar el último admin
       if (existingUser.role === "admin") {
-        const [adminCount] = await query(
-          'SELECT COUNT(*) as count FROM users WHERE role = "admin"',
-          []
-        );
-
-        if (adminCount.count <= 1) {
+        const adminCount = await prisma.user.count({
+          where: { role: "admin" },
+        });
+        if (adminCount <= 1) {
           return res
             .status(400)
             .json({ error: "No se puede eliminar el último administrador" });
         }
       }
-
       // Eliminar usuario
-      await query("DELETE FROM users WHERE id = ?", [id]);
-
+      await prisma.user.delete({ where: { id: parseInt(id) } });
       res.json({ message: "Usuario eliminado exitosamente" });
     } catch (error) {
       console.error("Delete user error:", error);
@@ -316,30 +326,35 @@ router.get(
   requireAdmin,
   async (req, res) => {
     try {
-      // Total de usuarios
-      const [totalUsers] = await query("SELECT COUNT(*) as total FROM users");
+      const totalUsers = await prisma.user.count();
 
-      // Usuarios por rol
-      const usersByRole = await query(`
-      SELECT role, COUNT(*) as count 
-      FROM users 
-      GROUP BY role
-    `);
+      const usersByRole = await prisma.user.groupBy({
+        by: ["role"],
+        _count: { role: true },
+      });
 
-      // Usuarios registrados este mes
-      const [monthlyUsers] = await query(`
-      SELECT COUNT(*) as total 
-      FROM users 
-      WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) 
-      AND YEAR(created_at) = YEAR(CURRENT_DATE())
-    `);
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const monthlyUsers = await prisma.user.count({
+        where: {
+          createdAt: {
+            gte: firstDay,
+            lte: lastDay,
+          },
+        },
+      });
 
       res.json({
         summary: {
-          total_users: totalUsers.total,
-          monthly_users: monthlyUsers.total,
+          total_users: totalUsers,
+          monthly_users: monthlyUsers,
         },
-        users_by_role: usersByRole,
+        users_by_role: usersByRole.map((r) => ({
+          role: r.role,
+          count: r._count.role,
+        })),
       });
     } catch (error) {
       console.error("Get user stats error:", error);
@@ -349,4 +364,3 @@ router.get(
 );
 
 export default router;
-

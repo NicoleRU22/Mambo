@@ -5,31 +5,63 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+interface Product {
+  id: number;
+  name: string;
+  description?: string;
+  price: number;
+  originalPrice?: number;
+  stock: number;
+  petType: string;
+  images: string[];
+  sizes: string[];
+  categoryId?: number;
+  category?: {
+    id: number;
+    name: string;
+  };
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  description?: string;
+}
 
 interface AddProductFormProps {
   onCancel: () => void;
+  onAdd: (newProduct: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  categories: Category[];
 }
 
-export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel }) => {
+export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel, onAdd, categories }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
+    originalPrice: '',
     stock: 0,
-    category: '',
-    petTypes: {
-      dog: false,
-      cat: false,
-      bird: false,
-      fish: false,
-    },
+    petType: '',
+    categoryId: '',
+    sizes: [] as string[],
+    isActive: true,
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const [useUrlInput, setUseUrlInput] = useState(false);
-  const [status, setStatus] = useState('Sin Stock');
 
   useEffect(() => {
     if (imageFile) {
@@ -41,10 +73,6 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel }) => {
     }
   }, [imageFile, imageUrl]);
 
-  useEffect(() => {
-    setStatus(formData.stock > 0 ? 'Activo' : 'Sin Stock');
-  }, [formData.stock]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({
@@ -53,13 +81,12 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel }) => {
     }));
   };
 
-  const handlePetTypeChange = (type: string) => {
+  const handleSizeChange = (size: string) => {
     setFormData(prev => ({
       ...prev,
-      petTypes: {
-        ...prev.petTypes,
-        [type]: !prev.petTypes[type as keyof typeof formData.petTypes],
-      },
+      sizes: prev.sizes.includes(size) 
+        ? prev.sizes.filter(s => s !== size)
+        : [...prev.sizes, size]
     }));
   };
 
@@ -76,15 +103,30 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel }) => {
     setImageFile(null);
   };
 
-  const handleSubmit = () => {
-    const product = {
-      ...formData,
-      status,
-      image: imageUrl || (imageFile ? imageFile.name : ''),
+  const isFormValid =
+    formData.name.trim() !== '' &&
+    formData.price.trim() !== '' &&
+    !isNaN(Number(formData.price)) &&
+    formData.stock >= 0 &&
+    formData.petType.trim() !== '';
+
+  const handleSubmit = async () => {
+    const images = imageUrl ? [imageUrl] : imageFile ? [URL.createObjectURL(imageFile)] : [];
+
+    const newProduct: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+      stock: formData.stock,
+      petType: formData.petType,
+      categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
+      sizes: formData.sizes,
+      images,
+      isActive: formData.isActive,
     };
 
-    console.log('📦 Producto agregado:', product);
-    alert('Producto agregado (ver consola)');
+    await onAdd(newProduct);
   };
 
   return (
@@ -110,43 +152,87 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="price">Precio (S/.)</Label>
-                <Input id="price" type="number" value={formData.price} onChange={handleChange} />
+                <Input 
+                  id="price" 
+                  type="number" 
+                  step="0.01"
+                  value={formData.price} 
+                  onChange={handleChange} 
+                />
               </div>
+              <div>
+                <Label htmlFor="originalPrice">Precio Original (S/.)</Label>
+                <Input 
+                  id="originalPrice" 
+                  type="number" 
+                  step="0.01"
+                  value={formData.originalPrice} 
+                  onChange={handleChange} 
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="stock">Stock</Label>
                 <Input id="stock" type="number" value={formData.stock} onChange={handleChange} />
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor="status">Estado</Label>
-              <Input
-                id="status"
-                readOnly
-                value={status}
-                className={`bg-gray-100 font-medium ${status === 'Activo' ? 'text-green-600' : 'text-red-600'}`}
-              />
+              <div>
+                <Label htmlFor="petType">Tipo de Mascota</Label>
+                <Select value={formData.petType} onValueChange={(value) => setFormData(prev => ({ ...prev, petType: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dog">Perro</SelectItem>
+                    <SelectItem value="cat">Gato</SelectItem>
+                    <SelectItem value="bird">Ave</SelectItem>
+                    <SelectItem value="fish">Pez</SelectItem>
+                    <SelectItem value="other">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div>
               <Label htmlFor="category">Categoría</Label>
-              <Input id="category" value={formData.category} onChange={handleChange} />
+              <Select value={formData.categoryId} onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id.toString()}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <Label>Tipo de mascota</Label>
+              <Label>Tallas Disponibles</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                {['Perro', 'Gato', 'Aves', 'Pez'].map((type) => (
-                  <label key={type} className="flex items-center space-x-2">
+                {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
+                  <label key={size} className="flex items-center space-x-2">
                     <Checkbox
-                      id={type}
-                      checked={formData.petTypes[type as keyof typeof formData.petTypes]}
-                      onCheckedChange={() => handlePetTypeChange(type)}
+                      id={size}
+                      checked={formData.sizes.includes(size)}
+                      onCheckedChange={() => handleSizeChange(size)}
                     />
-                    <span>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                    <span>{size}</span>
                   </label>
                 ))}
               </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isActive"
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked as boolean }))}
+              />
+              <Label htmlFor="isActive">Producto Activo</Label>
             </div>
           </div>
 
@@ -154,20 +240,19 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel }) => {
             <Label>Imagen del producto</Label>
 
             <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-           e.preventDefault();
-           const file = e.dataTransfer.files?.[0];
-            if (file && file.type.startsWith('image/')) {
-           setImageFile(file);
-           setImageUrl('');
-           }
-           }}
-           className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center text-gray-500 cursor-pointer hover:bg-gray-50 transition"
-           >
-           Arrastra una imagen aquí
-          </div>
-
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files?.[0];
+                if (file && file.type.startsWith('image/')) {
+                  setImageFile(file);
+                  setImageUrl('');
+                }
+              }}
+              className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center text-gray-500 cursor-pointer hover:bg-gray-50 transition"
+            >
+              Arrastra una imagen aquí
+            </div>
 
             <p className="text-center text-gray-500 text-sm">o</p>
 
@@ -186,13 +271,12 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel }) => {
               )}
 
               {preview && (
-              <img
-              src={preview}
-              alt="Vista previa"
-              className="rounded-md max-w-full max-h-40 object-contain border mt-2 mx-auto"
-              />
-            )}
-
+                <img
+                  src={preview}
+                  alt="Vista previa"
+                  className="rounded-md max-w-full max-h-40 object-contain border mt-2 mx-auto"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -201,7 +285,7 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ onCancel }) => {
           <Button variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button className="bg-primary-600 hover:bg-primary-700 text-white" onClick={handleSubmit}>
+          <Button onClick={handleSubmit} disabled={!isFormValid}>
             Agregar Producto
           </Button>
         </div>

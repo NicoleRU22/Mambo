@@ -75,7 +75,7 @@ export const productService = {
     sort?: string;
     order?: string;
     page?: number;
-    limit?: number;
+    limit?: number;               
   }) => {
     const queryParams = new URLSearchParams();
     if (params) {
@@ -101,10 +101,12 @@ export const productService = {
     name: string;
     description: string;
     price: number;
+    originalPrice?: number;
     stock: number;
-    category: string;
-    pet_type: string;
-    image_url?: string;
+    petType: string;
+    images?: string[];
+    sizes?: string[];
+    categoryId?: number;
   }) => {
     return apiRequest('/products', {
       method: 'POST',
@@ -116,10 +118,12 @@ export const productService = {
     name?: string;
     description?: string;
     price?: number;
+    originalPrice?: number;
     stock?: number;
-    category?: string;
-    pet_type?: string;
-    image_url?: string;
+    petType?: string;
+    images?: string[];
+    sizes?: string[];
+    categoryId?: number;
   }) => {
     return apiRequest(`/products/${id}`, {
       method: 'PUT',
@@ -135,6 +139,10 @@ export const productService = {
 
   getCategories: async () => {
     return apiRequest('/products/categories');
+  },
+
+  getCount: async () => {
+    return apiRequest('/products/count');
   },
 };
 
@@ -194,8 +202,28 @@ export const orderService = {
     return apiRequest(`/orders/${id}`);
   },
 
-  getAllOrders: async () => {
-    return apiRequest('/orders/admin/all');
+  getAllOrders: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    const queryString = queryParams.toString();
+    const endpoint = `/orders/admin/all${queryString ? `?${queryString}` : ''}`;
+    return apiRequest(endpoint);
+  },
+
+  getOrderDetails: async (id: number) => {
+    return apiRequest(`/orders/admin/${id}`);
   },
 
   updateOrderStatus: async (id: number, status: string) => {
@@ -242,6 +270,57 @@ export const userService = {
       method: 'PUT',
       body: JSON.stringify(profileData),
     });
+  },
+
+  // Métodos de administración para usuarios
+  getAllUsers: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    const queryString = queryParams.toString();
+    const endpoint = `/users/admin/all${queryString ? `?${queryString}` : ''}`;
+    return apiRequest(endpoint);
+  },
+
+  getUserById: async (id: number) => {
+    return apiRequest(`/users/admin/${id}`);
+  },
+
+  updateUser: async (id: number, userData: {
+    name?: string;
+    email?: string;
+    role?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zip_code?: string;
+  }) => {
+    return apiRequest(`/users/admin/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  deleteUser: async (id: number) => {
+    return apiRequest(`/users/admin/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getUserStats: async () => {
+    return apiRequest('/users/stats/summary');
   },
 };
 

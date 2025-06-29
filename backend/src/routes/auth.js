@@ -33,12 +33,13 @@ router.post(
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // Crear usuario
+      // Crear usuario
       const newUser = await prisma.user.create({
         data: {
           name,
           email,
           password: hashedPassword,
-          // role: 'user' // si tienes el campo role y quieres asignar por defecto
+          role: "client", // ✅ asigna rol por defecto si no se define en el formulario
         },
         select: {
           id: true,
@@ -48,10 +49,17 @@ router.post(
         },
       });
 
-      // Generar token JWT
-      const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN,
-      });
+      // Firma del token incluyendo el rol
+      const token = jwt.sign(
+        {
+          userId: newUser.id,
+          role: newUser.role,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: process.env.JWT_EXPIRES_IN,
+        }
+      );
 
       res.status(201).json({
         message: "Usuario registrado exitosamente",
@@ -86,9 +94,16 @@ router.post("/login", validateLogin, async (req, res) => {
     }
 
     // Generar token JWT
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role, // ✅ agrega esto
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      }
+    );
 
     // Remover contraseña de la respuesta
     const { password: _, ...userWithoutPassword } = user;
@@ -150,4 +165,3 @@ router.post("/refresh", authenticateToken, async (req, res) => {
 });
 
 export default router;
-

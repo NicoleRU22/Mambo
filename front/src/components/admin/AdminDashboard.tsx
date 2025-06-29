@@ -3,7 +3,8 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { ProductsTable } from '@/components/admin/ProductsTable';
 import { OrdersTable } from '@/components/admin/OrdersTable';
 import { AdminBlog } from '@/components/admin/AdminBlog';
-import { ClientesPanel} from '@/components/admin/ClientesPanel';
+import AdminContact from '@/components/admin/AdminContact';
+import { UsuariosPanel} from '@/components/admin/UsuariosPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -27,6 +28,7 @@ import {
   DollarSign,
   AlertTriangle,
 } from 'lucide-react';
+import AdminProfilePanel from './AdminProfilePanel';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('Dashboard');
@@ -70,8 +72,8 @@ const AdminDashboard = () => {
       color: 'text-purple-600',
     },
     {
-      title: 'Clientes',
-      value: '2,341',
+      title: 'Usuarios',
+      value: "100",
       change: '+12%',
       icon: Users,
       color: 'text-orange-600',
@@ -230,7 +232,7 @@ const AdminDashboard = () => {
                       <CardTitle>Productos Más Vendidos</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
+                      <div className="space-y-4"> 
                         {topProducts.map((product, index) => (
                           <div key={index} className="flex justify-between items-center">
                             <div>
@@ -254,7 +256,9 @@ const AdminDashboard = () => {
         {activeSection === 'Productos' && <ProductsTable />}
         {activeSection === 'Pedidos' && <OrdersTable />}
         {activeSection === 'Blog' && <AdminBlog />}
-        {activeSection === 'Usuarios' && <ClientesPanel />}
+        {activeSection === 'Usuarios' && <UsuariosPanel />}
+        {activeSection === 'Perfil' && <AdminProfilePanel />}
+        {activeSection === 'Quejas y Sugerencias' && <AdminContact />}
 
       </div>
     </div>

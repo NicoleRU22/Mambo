@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import AdminProfilePanel from "./AdminProfilePanel";
 import { orderService, userService, productService } from "@/services/api";
+import AdminSettingsPanel from "./AdminSettingsPanel";
 
 interface DashboardStats {
   total_orders: number;
@@ -383,6 +384,8 @@ const AdminDashboard = () => {
         {activeSection === "Blog" && <AdminBlog />}
         {activeSection === "Contacto" && <AdminContact />}
         {activeSection === "Perfil" && <AdminProfilePanel />}
+        {activeSection === "Configuración" && <AdminSettingsPanel />}
+
       </div>
     </div>
   );

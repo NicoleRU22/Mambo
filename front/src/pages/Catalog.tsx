@@ -15,12 +15,13 @@ import { Search, Filter, Star, ShoppingCart, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { productService, cartService, categoryService } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import axios from "axios";
 
 interface Product {
   id: number;
   name: string;
   description?: string;
-  price: number;  
+  price: number;
   original_price?: number;
   images: string[];
   rating: number;
@@ -58,9 +59,14 @@ const Catalog = () => {
         const [productsData, categoriesData] = await Promise.all([
           productService.getAll(),
           categoryService.getAll(),
+          productService.getAll(),
         ]);
 
-        setProducts(productsData.products || []);
+        if (!Array.isArray(productsData)) {
+          console.error("❌ Los productos no son un array:", productsData);
+        }
+        setProducts(productsData ?? []);
+
         setCategories(categoriesData || []);
       } catch (err) {
         console.error("Error loading products:", err);

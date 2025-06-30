@@ -13,7 +13,7 @@ router.post(
   "/register",
   (req, res, next) => {
     console.log("[DEBUG] Datos recibidos en /register:", req.body);
-    next(); // ✅ Ahora sí existe `next`
+    next(); //
   },
   validateRegister,
   async (req, res) => {
@@ -39,7 +39,7 @@ router.post(
           name,
           email,
           password: hashedPassword,
-          role: "client", // ✅ asigna rol por defecto si no se define en el formulario
+          role: "USER", 
         },
         select: {
           id: true,

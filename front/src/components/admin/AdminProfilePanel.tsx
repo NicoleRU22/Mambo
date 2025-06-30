@@ -7,12 +7,12 @@ const AdminProfilePanel = () => {
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({
     name: 'Administrador',
-    email: 'admin@example.com',
-    phone: '999999999',
-    address: 'Av. Siempre Viva 123',
-    city: 'Lima',
-    state: 'Lima',
-    zip_code: '15001',
+    email: 'admin@gmail.com',
+    phone: '969 562 485',
+    address: 'Av. San Martín 242',
+    city: 'Ica',
+    state: 'Ica',
+    zip_code: '110001',
     created_at: '2024-01-01',
   });
 

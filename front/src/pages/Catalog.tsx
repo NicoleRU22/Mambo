@@ -43,6 +43,7 @@ const Catalog = () => {
   const [sortBy, setSortBy] = useState("name");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [visibleCount, setVisibleCount] = useState(5);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -93,6 +94,8 @@ const Catalog = () => {
     }
   });
 
+  const visibleProducts = sortedProducts.slice(0, visibleCount);
+
   const handleAddToCart = async (productId: number) => {
     if (!isAuthenticated) {
       navigate("/login");
@@ -106,6 +109,11 @@ const Catalog = () => {
       console.error("Error adding to cart:", error);
     }
   };
+
+  const handleLoadMore = () => {
+  setVisibleCount((prev) => Math.min(prev + 5, sortedProducts.length));
+};
+
 
   if (loading) {
     return (
@@ -204,7 +212,7 @@ const Catalog = () => {
         {/* Cantidad mostrada */}
         <div className="flex justify-between items-center mb-6">
           <p className="text-gray-600">
-            Mostrando {sortedProducts.length} de {products.length} productos
+            Mostrando {visibleProducts.length} de {sortedProducts.length} productos encontrados
           </p>
           <Button variant="outline" className="flex items-center space-x-2">
             <Filter className="h-4 w-4" />
@@ -214,7 +222,7 @@ const Catalog = () => {
 
         {/* Productos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {sortedProducts.map((product) => (
+          {visibleProducts.map((product) => (
             <Card
               key={product.id}
               onClick={() => navigate(`/product/${product.id}`, { state: { product } })}
@@ -228,11 +236,7 @@ const Catalog = () => {
                 />
                 {product.original_price && (
                   <span className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                    -
-                    {Math.round(
-                      ((product.original_price - product.price) / product.original_price) * 100
-                    )}
-                    %
+                    -{Math.round(((product.original_price - product.price) / product.original_price) * 100)}%
                   </span>
                 )}
                 <button
@@ -280,15 +284,18 @@ const Catalog = () => {
         </div>
 
         {/* Cargar más */}
-        {sortedProducts.length === 0 && (
+        {visibleCount < sortedProducts.length && (
           <div className="text-center mt-12">
-            <p className="text-gray-500">No se encontraron productos que coincidan con tu búsqueda.</p>
+            <Button variant="outline" size="lg" onClick={handleLoadMore}>
+              Cargar más productos
+            </Button>
           </div>
         )}
 
-        {sortedProducts.length > 0 && (
+        {/* No productos encontrados */}
+        {sortedProducts.length === 0 && (
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg">Cargar más productos</Button>
+            <p className="text-gray-500">No se encontraron productos que coincidan con tu búsqueda.</p>
           </div>
         )}
       </main>

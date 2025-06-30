@@ -58,10 +58,6 @@ const ProductDetail = () => {
               )}
             </div>
 
-            <p className="mb-2 text-sm text-gray-600">
-              Valoración: ⭐ {product.rating} ({product.reviews_count} opiniones)
-            </p>
-
             {product.sizes.length > 0 && (
               <p className="mb-2 text-sm text-gray-600">
                 Tallas disponibles: {product.sizes.join(", ")}
@@ -73,16 +69,14 @@ const ProductDetail = () => {
 
             <div className="flex space-x-4">
               <Button variant="outline" onClick={() => navigate("/catalog")}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Volver
               </Button>
-
 
               <Button className="bg-primary-600 hover:bg-primary-700">
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Agregar al carrito
               </Button>
-              
             </div>
           </div>
         </div>

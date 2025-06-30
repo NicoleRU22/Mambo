@@ -60,11 +60,7 @@ const App = () => (
           />
           <Route
             path="/cart"
-            element={
-              <ProtectedRoute>
-                <Cart />
-              </ProtectedRoute>
-            }
+            element={<Cart />}
           />
           <Route
             path="/checkout"

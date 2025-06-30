@@ -1,18 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Lock, CreditCard, Truck, ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { cartService, orderService, userService } from '@/services/api';
-import Swal from 'sweetalert2';
+import React, { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import {
+  Lock,
+  CreditCard,
+  Truck,
+  ShieldCheck,
+  MapPin,
+  Phone,
+  Mail,
+  User,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { cartService, orderService, userService } from "@/services/api";
+import Swal from "sweetalert2";
+
+// Declaración de Culqi
+declare global {
+  interface Window {
+    Culqi: any;
+  }
+}
 
 interface CartItem {
   id: number;
@@ -29,11 +46,23 @@ interface CartSummary {
   itemCount: number;
 }
 
+interface ShippingForm {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  notes: string;
+}
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const [paymentMethod, setPaymentMethod] = useState('card');
-  const [shippingMethod, setShippingMethod] = useState('standard');
+  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [shippingMethod, setShippingMethod] = useState("standard");
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -41,62 +70,190 @@ const Checkout = () => {
     subtotal: 0,
     shipping: 0,
     total: 0,
-    itemCount: 0
+    itemCount: 0,
   });
-  const [userProfile, setUserProfile] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: ''
+  const [shippingForm, setShippingForm] = useState<ShippingForm>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    notes: "",
   });
+  const [sameAsShipping, setSameAsShipping] = useState(true);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const isPaying = useRef(false);
 
   useEffect(() => {
     if (isAuthenticated) {
       loadCheckoutData();
+      loadCulqi();
     } else {
-      navigate('/login');
+      navigate("/login");
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    window.culqi = function () {
+      if (isPaying.current) {
+        if (window.Culqi && window.Culqi.token) {
+          // Token recibido, envíalo al backend
+          const token = window.Culqi.token.id;
+          handleCulqiToken(token);
+        } else {
+          // El usuario cerró el modal o hubo error
+          // Puedes mostrar un error si quieres
+        }
+        isPaying.current = false;
+      }
+    };
+  }, []);
+
+  const loadCulqi = () => {
+    // Cargar Culqi desde CDN
+    const script = document.createElement("script");
+    script.src = "https://checkout.culqi.com/js/v4";
+    script.onload = () => {
+      if (window.Culqi) {
+        window.Culqi.publicKey =
+          import.meta.env.VITE_CULQI_PUBLIC_KEY || "pk_test_51H7X8X8X8X8X8X8X8";
+      }
+    };
+    document.head.appendChild(script);
+  };
 
   const loadCheckoutData = async () => {
     try {
       setLoading(true);
-      
+
       // Cargar carrito
       const cartData = await cartService.getCart();
       setCartItems(cartData.items || []);
-      setSummary(cartData.summary || {
-        subtotal: 0,
-        shipping: 0,
-        total: 0,
-        itemCount: 0
-      });
+      setSummary(
+        cartData.summary || {
+          subtotal: 0,
+          shipping: 0,
+          total: 0,
+          itemCount: 0,
+        }
+      );
 
       // Cargar perfil del usuario
       const profileData = await userService.getProfile();
-      setUserProfile({
-        name: profileData.name || user?.name || '',
-        email: profileData.email || user?.email || '',
-        phone: profileData.phone || '',
-        address: profileData.address || '',
-        city: profileData.city || '',
-        state: profileData.state || '',
-        zipCode: profileData.zipCode || ''
+      const fullName = profileData.name || user?.name || "";
+      const nameParts = fullName.split(" ");
+
+      setShippingForm({
+        firstName: nameParts[0] || "",
+        lastName: nameParts.slice(1).join(" ") || "",
+        email: profileData.email || user?.email || "",
+        phone: profileData.phone || "",
+        address: profileData.address || "",
+        city: profileData.city || "",
+        state: profileData.state || "",
+        zipCode: profileData.zipCode || "",
+        notes: "",
       });
     } catch (error) {
-      console.error('Error loading checkout data:', error);
+      console.error("Error loading checkout data:", error);
       Swal.fire({
-        title: 'Error',
-        text: 'Error al cargar los datos del checkout',
-        icon: 'error',
-        confirmButtonText: 'Aceptar'
+        title: "Error",
+        text: "Error al cargar los datos del checkout",
+        icon: "error",
+        confirmButtonText: "Aceptar",
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateShipping = () => {
+    if (shippingMethod === "express") {
+      return 15.99;
+    }
+    return summary.subtotal > 50 ? 0 : 8.99;
+  };
+
+  const shippingCost = calculateShipping();
+  const tax = summary.subtotal * 0.08; // 8% tax
+  const total = summary.subtotal + shippingCost + tax;
+
+  const handleInputChange = (field: keyof ShippingForm, value: string) => {
+    setShippingForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const validateForm = () => {
+    const requiredFields = [
+      "firstName",
+      "lastName",
+      "email",
+      "phone",
+      "address",
+      "city",
+      "state",
+      "zipCode",
+    ];
+    for (const field of requiredFields) {
+      if (!shippingForm[field as keyof ShippingForm]) {
+        Swal.fire({
+          title: "Campos requeridos",
+          text: `Por favor completa el campo ${field}`,
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
+        return false;
+      }
+    }
+
+    if (!termsAccepted) {
+      Swal.fire({
+        title: "Términos y condiciones",
+        text: "Debes aceptar los términos y condiciones para continuar",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleCulqiToken = async (token) => {
+    // Aquí llamas a tu backend para procesar el pago y crear el pedido
+    // Por ejemplo, puedes reutilizar tu lógica de checkout:
+    try {
+      setProcessing(true);
+      // Llama a tu backend con el token y los datos del pedido
+      // orderService.checkout({ ...datos, payment_token: token });
+      // ...
+      // Muestra éxito o redirige
+    } catch (error) {
+      // Maneja el error
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handlePay = () => {
+    if (!window.Culqi) {
+      alert('Culqi no está cargado');
+      return;
+    }
+    isPaying.current = true;
+    window.Culqi.settings({
+      title: 'Mambo PetShop',
+      currency: 'PEN',
+      description: 'Pago de pedido',
+      amount: Math.round(total * 100),
+      // publicKey: import.meta.env.VITE_CULQI_PUBLIC_KEY, // si tu versión lo requiere
+    });
+    window.Culqi.open();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,32 +264,21 @@ const Checkout = () => {
       return;
     }
 
+    if (!validateForm()) {
+      return;
+    }
+
     setProcessing(true);
 
     try {
-      const checkoutData = {
-        shipping_address: `${userProfile.address}, ${userProfile.city}, ${userProfile.state} ${userProfile.zipCode}`,
-        billing_address: `${userProfile.address}, ${userProfile.city}, ${userProfile.state} ${userProfile.zipCode}`,
-        payment_method: paymentMethod,
-        contact_phone: userProfile.phone,
-        contact_email: userProfile.email,
-        shipping_method: shippingMethod,
-        notes: ((e.target as HTMLFormElement).elements.namedItem('notes') as HTMLTextAreaElement)?.value || ''
-      };
-
-      const orderResult = await orderService.checkout(checkoutData);
-      
-      Swal.fire({
-        title: '¡Pedido realizado con éxito!',
-        text: `Tu pedido #${orderResult.order_number} ha sido confirmado`,
-        icon: 'success',
-        confirmButtonText: 'Ver Pedido'
-      }).then(() => {
-        navigate('/payment-success', { 
-          state: { orderNumber: orderResult.order_number }
-        });
-      });
-
+      const paymentToken = null;
+      // El flujo de Culqi v4 ahora se maneja con handlePay y handleCulqiToken
+      // Si el método de pago es contra entrega, puedes manejarlo aquí:
+      if (paymentMethod === 'cash') {
+        // Aquí puedes llamar directamente a tu backend para crear el pedido sin token
+        // orderService.checkout({ ...datos, payment_method: 'cash' });
+      }
+      // Para tarjeta, el flujo se maneja en handleCulqiToken
     } catch (error) {
       console.error('Error processing checkout:', error);
       Swal.fire({
@@ -145,17 +291,6 @@ const Checkout = () => {
       setProcessing(false);
     }
   };
-
-  const calculateShipping = () => {
-    if (shippingMethod === 'express') {
-      return 15.99;
-    }
-    return summary.subtotal > 50 ? 0 : 8.99;
-  };
-
-  const shippingCost = calculateShipping();
-  const tax = summary.subtotal * 0.08; // 8% tax
-  const total = summary.subtotal + shippingCost + tax;
 
   if (!isAuthenticated) {
     return null; // Ya se redirige en useEffect
@@ -182,10 +317,10 @@ const Checkout = () => {
         <main className="container mx-auto px-4 py-8">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold mb-4">Tu carrito está vacío</h1>
-            <p className="text-gray-600 mb-6">Agrega productos antes de proceder al checkout</p>
-            <Button onClick={() => navigate('/catalog')}>
-              Ir al Catálogo
-            </Button>
+            <p className="text-gray-600 mb-6">
+              Agrega productos antes de proceder al checkout
+            </p>
+            <Button onClick={() => navigate("/catalog")}>Ir al Catálogo</Button>
           </div>
         </main>
         <Footer />
@@ -198,305 +333,331 @@ const Checkout = () => {
       <Header />
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Finalizar Compra</h1>
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Lock className="h-4 w-4" />
-            <span>Pago 100% seguro y protegido</span>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Finalizar Compra
+          </h1>
+          <p className="text-gray-600">
+            Completa tus datos para procesar el pedido
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Checkout Form */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Shipping Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Truck className="h-5 w-5" />
-                    <span>Información de Envío</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">Nombre *</Label>
-                      <Input 
-                        id="firstName" 
-                        value={userProfile.name.split(' ')[0] || ''}
-                        onChange={(e) => setUserProfile({
-                          ...userProfile, 
-                          name: e.target.value + ' ' + (userProfile.name.split(' ').slice(1).join(' ') || '')
-                        })}
-                        required 
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Apellido *</Label>
-                      <Input 
-                        id="lastName" 
-                        value={userProfile.name.split(' ').slice(1).join(' ') || ''}
-                        onChange={(e) => setUserProfile({
-                          ...userProfile, 
-                          name: (userProfile.name.split(' ')[0] || '') + ' ' + e.target.value
-                        })}
-                        required 
-                      />
-                    </div>
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+        >
+          {/* Formulario de envío */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Información de contacto */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <User className="h-5 w-5 mr-2" />
+                  Información de Contacto
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="firstName">Nombre *</Label>
+                    <Input
+                      id="firstName"
+                      value={shippingForm.firstName}
+                      onChange={(e) =>
+                        handleInputChange("firstName", e.target.value)
+                      }
+                      required
+                    />
                   </div>
-                  
+                  <div>
+                    <Label htmlFor="lastName">Apellido *</Label>
+                    <Input
+                      id="lastName"
+                      value={shippingForm.lastName}
+                      onChange={(e) =>
+                        handleInputChange("lastName", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="email">Email *</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      value={userProfile.email}
-                      onChange={(e) => setUserProfile({...userProfile, email: e.target.value})}
-                      required 
+                    <Input
+                      id="email"
+                      type="email"
+                      value={shippingForm.email}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
+                      required
                     />
                   </div>
-                  
                   <div>
                     <Label htmlFor="phone">Teléfono *</Label>
-                    <Input 
-                      id="phone" 
-                      type="tel" 
-                      value={userProfile.phone}
-                      onChange={(e) => setUserProfile({...userProfile, phone: e.target.value})}
-                      required 
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={shippingForm.phone}
+                      onChange={(e) =>
+                        handleInputChange("phone", e.target.value)
+                      }
+                      required
                     />
                   </div>
-                  
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Dirección de envío */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MapPin className="h-5 w-5 mr-2" />
+                  Dirección de Envío
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="address">Dirección *</Label>
+                  <Input
+                    id="address"
+                    value={shippingForm.address}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
+                    placeholder="Calle, número, departamento"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="address">Dirección *</Label>
-                    <Input 
-                      id="address" 
-                      value={userProfile.address}
-                      onChange={(e) => setUserProfile({...userProfile, address: e.target.value})}
-                      required 
+                    <Label htmlFor="city">Ciudad *</Label>
+                    <Input
+                      id="city"
+                      value={shippingForm.city}
+                      onChange={(e) =>
+                        handleInputChange("city", e.target.value)
+                      }
+                      required
                     />
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="city">Ciudad *</Label>
-                      <Input 
-                        id="city" 
-                        value={userProfile.city}
-                        onChange={(e) => setUserProfile({...userProfile, city: e.target.value})}
-                        required 
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="state">Estado/Provincia *</Label>
-                      <Input 
-                        id="state" 
-                        value={userProfile.state}
-                        onChange={(e) => setUserProfile({...userProfile, state: e.target.value})}
-                        required 
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="zipCode">Código Postal *</Label>
-                      <Input 
-                        id="zipCode" 
-                        value={userProfile.zipCode}
-                        onChange={(e) => setUserProfile({...userProfile, zipCode: e.target.value})}
-                        required 
-                      />
-                    </div>
-                  </div>
-
                   <div>
-                    <Label htmlFor="notes">Notas para la entrega (opcional)</Label>
-                    <Textarea 
-                      id="notes" 
-                      placeholder="Instrucciones especiales para la entrega..."
-                      className="min-h-[80px]"
+                    <Label htmlFor="state">Estado/Provincia *</Label>
+                    <Input
+                      id="state"
+                      value={shippingForm.state}
+                      onChange={(e) =>
+                        handleInputChange("state", e.target.value)
+                      }
+                      required
                     />
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Shipping Method */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Método de Envío</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RadioGroup value={shippingMethod} onValueChange={setShippingMethod}>
-                    <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                      <RadioGroupItem value="standard" id="standard" />
-                      <Label htmlFor="standard" className="flex-1 cursor-pointer">
-                        <div className="flex justify-between">
-                          <div>
-                            <p className="font-medium">Envío Estándar</p>
-                            <p className="text-sm text-gray-500">5-7 días hábiles</p>
-                          </div>
-                          <span className="font-medium">
-                            {summary.subtotal > 50 ? 'Gratis' : 'S/.8.99'}
-                          </span>
-                        </div>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                      <RadioGroupItem value="express" id="express" />
-                      <Label htmlFor="express" className="flex-1 cursor-pointer">
-                        <div className="flex justify-between">
-                          <div>
-                            <p className="font-medium">Envío Express</p>
-                            <p className="text-sm text-gray-500">2-3 días hábiles</p>
-                          </div>
-                          <span className="font-medium">S/.15.99</span>
-                        </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </CardContent>
-              </Card>
-
-              {/* Payment Method */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <CreditCard className="h-5 w-5" />
-                    <span>Método de Pago</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                      <RadioGroupItem value="card" id="card" />
-                      <Label htmlFor="card" className="flex-1 cursor-pointer">
-                        <div className="flex items-center space-x-2">
-                          <CreditCard className="h-4 w-4" />
-                          <span>Tarjeta de Crédito/Débito</span>
-                        </div>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                      <RadioGroupItem value="paypal" id="paypal" />
-                      <Label htmlFor="paypal" className="flex-1 cursor-pointer">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 bg-blue-600 rounded"></div>
-                          <span>PayPal</span>
-                        </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-
-                  {paymentMethod === 'card' && (
-                    <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <Label htmlFor="cardNumber">Número de Tarjeta *</Label>
-                        <Input 
-                          id="cardNumber" 
-                          placeholder="1234 5678 9012 3456" 
-                          required 
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="expiry">Fecha de Vencimiento *</Label>
-                          <Input 
-                            id="expiry" 
-                            placeholder="MM/YY" 
-                            required 
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="cvv">CVV *</Label>
-                          <Input 
-                            id="cvv" 
-                            placeholder="123" 
-                            required 
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="cardName">Nombre en la Tarjeta *</Label>
-                        <Input 
-                          id="cardName" 
-                          placeholder="Juan Pérez" 
-                          required 
-                        />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Order Summary */}
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Resumen del Pedido</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Order Items */}
-                  <div className="space-y-3">
-                    {cartItems.map((item) => (
-                      <div key={item.id} className="flex items-center space-x-3">
-                        <img 
-                          src={item.image || '/placeholder.svg'} 
-                          alt={item.product_name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{item.product_name}</p>
-                          <p className="text-sm text-gray-500">Cantidad: {item.quantity}</p>
-                        </div>
-                        <p className="font-semibold">S/.{(item.price * item.quantity).toFixed(2)}</p>
-                      </div>
-                    ))}
+                  <div>
+                    <Label htmlFor="zipCode">Código Postal *</Label>
+                    <Input
+                      id="zipCode"
+                      value={shippingForm.zipCode}
+                      onChange={(e) =>
+                        handleInputChange("zipCode", e.target.value)
+                      }
+                      required
+                    />
                   </div>
+                </div>
+                <div>
+                  <Label htmlFor="notes">Notas adicionales</Label>
+                  <Textarea
+                    id="notes"
+                    value={shippingForm.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    placeholder="Instrucciones especiales para la entrega..."
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-                  <Separator />
-
-                  {/* Totals */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Subtotal</span>
-                      <span>S/.{summary.subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Envío</span>
-                      <span>{shippingCost === 0 ? 'Gratis' : `S/.${shippingCost.toFixed(2)}`}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Impuestos (8%)</span>
-                      <span>S/.{tax.toFixed(2)}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total</span>
-                      <span>S/.{total.toFixed(2)}</span>
-                    </div>
+            {/* Método de envío */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Truck className="h-5 w-5 mr-2" />
+                  Método de Envío
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup
+                  value={shippingMethod}
+                  onValueChange={setShippingMethod}
+                >
+                  <div className="flex items-center space-x-2 mb-4">
+                    <RadioGroupItem value="standard" id="standard" />
+                    <Label htmlFor="standard" className="flex-1">
+                      <div className="flex justify-between">
+                        <span>Envío estándar</span>
+                        <span className="font-semibold">
+                          {summary.subtotal > 50 ? "Gratis" : "S/.8.99"}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">2-5 días hábiles</p>
+                    </Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="express" id="express" />
+                    <Label htmlFor="express" className="flex-1">
+                      <div className="flex justify-between">
+                        <span>Envío express</span>
+                        <span className="font-semibold">S/.15.99</span>
+                      </div>
+                      <p className="text-sm text-gray-500">1-2 días hábiles</p>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </CardContent>
+            </Card>
 
-                  {/* Security Info */}
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <ShieldCheck className="h-4 w-4 text-green-600" />
-                      <span className="font-medium text-green-800">Pago Seguro</span>
-                    </div>
-                    <p className="text-sm text-green-700">
-                      Tus datos están protegidos con encriptación SSL de 256 bits
+            {/* Método de pago */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="h-5 w-5 mr-2" />
+                  Método de Pago
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={setPaymentMethod}
+                >
+                  <div className="flex items-center space-x-2 mb-4">
+                    <RadioGroupItem value="card" id="card" />
+                    <Label htmlFor="card" className="flex items-center">
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Tarjeta de crédito/débito
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="cash" id="cash" />
+                    <Label htmlFor="cash">Pago contra entrega</Label>
+                  </div>
+                </RadioGroup>
+
+                {paymentMethod === "card" && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <ShieldCheck className="h-4 w-4 inline mr-1" />
+                      Tus datos de pago están protegidos con encriptación SSL
                     </p>
                   </div>
+                )}
+              </CardContent>
+            </Card>
 
-                  {/* Submit Button */}
-                  <Button 
-                    type="submit"
-                    className="w-full bg-primary-600 hover:bg-primary-700 text-white"
-                    disabled={processing}
-                  >
-                    {processing ? 'Procesando...' : 'Confirmar Pedido'}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Términos y condiciones */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="terms"
+                    checked={termsAccepted}
+                    onCheckedChange={(checked) =>
+                      setTermsAccepted(checked as boolean)
+                    }
+                  />
+                  <Label htmlFor="terms" className="text-sm">
+                    Acepto los{" "}
+                    <a
+                      href="/terms-and-conditions"
+                      className="text-primary-600 hover:underline"
+                    >
+                      términos y condiciones
+                    </a>{" "}
+                    y la{" "}
+                    <a
+                      href="/privacy-policy"
+                      className="text-primary-600 hover:underline"
+                    >
+                      política de privacidad
+                    </a>
+                  </Label>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Resumen del pedido */}
+          <div>
+            <Card className="sticky top-4">
+              <CardHeader>
+                <CardTitle>Resumen del Pedido</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Productos */}
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {cartItems.map((item) => (
+                    <div key={item.id} className="flex items-center space-x-3">
+                      <img
+                        src={item.image || "/placeholder.svg"}
+                        alt={item.product_name}
+                        className="w-12 h-12 object-cover rounded-md"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {item.product_name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Cantidad: {item.quantity}
+                        </p>
+                      </div>
+                      <p className="text-sm font-semibold">
+                        S/.{(item.price * item.quantity).toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <Separator />
+
+                {/* Totales */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span>S/.{summary.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Envío</span>
+                    <span>
+                      {shippingCost === 0
+                        ? "Gratis"
+                        : `S/.${shippingCost.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>IGV (8%)</span>
+                    <span>S/.{tax.toFixed(2)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>S/.{total.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <Button
+                  className="w-full bg-primary-600 hover:bg-primary-700 text-white"
+                  onClick={handlePay} 
+                  disabled={processing}
+                >
+                  Finalizar Compra
+                </Button>
+
+                <div className="text-xs text-gray-500 text-center">
+                  Al completar tu compra, aceptas nuestros términos y
+                  condiciones
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </form>
       </main>

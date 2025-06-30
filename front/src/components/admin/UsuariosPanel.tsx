@@ -54,7 +54,7 @@ export const UsuariosPanel = () => {
   const handleEdit = async (id: number) => {
     try {
       const user = await userService.getUserById(id);
-      setSelectedUser(user);
+      setSelectedUser(user.user);
       setEditOpen(true);
     } catch (error) {
       console.error("Error getting user:", error);
@@ -222,15 +222,7 @@ export const UsuariosPanel = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(usuario.id)}
-                          className="transition-all duration-200 hover:bg-blue-100 hover:text-blue-600"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </Button>
+                        
                         <Button
                           variant="outline"
                           size="sm"

@@ -21,8 +21,9 @@ router.get("/profile", authenticateToken, async (req, res) => {
         address: true,
         city: true,
         state: true,
-        zip_code: true,
-        created_at: true,
+        zipCode: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
     if (!user) {

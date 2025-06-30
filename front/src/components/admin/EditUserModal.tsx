@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { userService } from "@/services/api";
+import { toast } from "sonner";
 
 interface EditUserModalProps {
   user: {
@@ -18,20 +19,28 @@ export const EditUserModal = ({
   onClose,
   onUpdate,
 }: EditUserModalProps) => {
-  const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
+  const [name, setName] = useState(user.name || "");
+  const [email, setEmail] = useState(user.email || "");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setName(user.name || "");
+    setEmail(user.email || "");
+  }, [user]);
+
   const handleSave = async () => {
+    if (!user || !user.id) {
+      console.error("Usuario inválido:", user);
+      return;
+    }
+
     try {
-      setLoading(true);
-      const updated = await userService.updateUser(user.id, { name, email });
-      onUpdate(updated.user);
-    } catch (err) {
-      console.error("Error actualizando usuario:", err);
-      alert("No se pudo actualizar el usuario");
-    } finally {
-      setLoading(false);
+      await userService.updateUser(user.id, { name, email });
+      toast.success("Usuario actualizado correctamente");
+      onClose();
+    } catch (error) {
+      console.error("Error actualizando usuario:", error);
+      toast.error("Error actualizando usuario");
     }
   };
 

@@ -104,6 +104,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(data.token);
         setUser(data.user);
         localStorage.setItem("token", data.token);
+        // --- Sincronizar carrito local si existe ---
+        const localCart = localStorage.getItem("guest_cart");
+        if (localCart) {
+          const itemsRaw = JSON.parse(localCart);
+          const items = Array.isArray(itemsRaw)
+            ? itemsRaw.map((item) => ({
+                product_id: item.productId,
+                quantity: item.quantity,
+                size: item.size,
+              }))
+            : [];
+          if (items.length > 0) {
+            await import('../services/api').then(({ cartService }) => cartService.syncCart(items));
+            localStorage.removeItem("guest_cart");
+          }
+        }
+        // --- Fin sincronización ---
         return data.user;
       } else {
         throw new Error(data.error || "Error al iniciar sesión");

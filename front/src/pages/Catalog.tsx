@@ -9,12 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Search, Filter, ShoppingCart, Heart } from "lucide-react";
+import FloatingCart from "@/components/FloatingCart";
+import { Search, Filter, ShoppingCart, Heart, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { productService, cartService, categoryService } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import Swal from "sweetalert2";
+import { addToLocalCart, getLocalCart } from "@/utils/cartLocal";
 
 interface Product {
   id: number;
@@ -46,8 +51,14 @@ const Catalog = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
+  const [addingToCart, setAddingToCart] = useState<number | null>(null);
+  const { isAuthenticated, user } = useAuth();
+
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadData = async () => {
@@ -71,6 +82,21 @@ const Catalog = () => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCartCount();
+    }
+  }, [isAuthenticated]);
+
+  const loadCartCount = async () => {
+    try {
+      const cartData = await cartService.getCart();
+      setCartItemCount(cartData.summary?.itemCount || 0);
+    } catch (error) {
+      console.error("Error loading cart count:", error);
+    }
+  };
+
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,7 +108,9 @@ const Catalog = () => {
 
     const matchesSize =
       selectedSize === "all" ||
-      product.sizes.map((s) => s.toLowerCase()).includes(selectedSize.toLowerCase());
+      product.sizes
+        .map((s) => s.toLowerCase())
+        .includes(selectedSize.toLowerCase());
 
     return matchesSearch && matchesCategory && matchesSize;
   });
@@ -101,22 +129,48 @@ const Catalog = () => {
 
   const visibleProducts = sortedProducts.slice(0, visibleCount);
 
-  const handleAddToCart = async (productId: number) => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => Math.min(prev + 5, sortedProducts.length));
+  };
+
+  const handleAddToCart = async (
+    productId: number,
+    quantity: number,
+    size: string
+  ) => {
+    if (!user) {
+      addToLocalCart(productId, quantity, size);
+      setCartItemCount(getLocalCart().reduce((sum, item) => sum + item.quantity, 0));
+      return Swal.fire(
+        "Agregado",
+        "Producto añadido al carrito local",
+        "success"
+      );
     }
 
     try {
-      await cartService.addToCart(productId, 1);
-      console.log("Producto agregado al carrito");
-    } catch (error) {
-      console.error("Error adding to cart:", error);
+      setAddingToCart(productId);
+      await cartService.addToCart(productId, quantity);
+      await loadCartCount();
+      Swal.fire("¡Éxito!", "Producto agregado al carrito", "success");
+    } catch (error: unknown) {
+      console.error("Error al agregar al carrito:", error);
+      let msg = "No se pudo agregar al carrito";
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        const message = String((error as { message?: unknown }).message);
+        if (message.includes('Stock insuficiente')) msg = 'Stock insuficiente';
+        if (message.includes('Producto no encontrado')) msg = 'Producto no disponible';
+      }
+      Swal.fire("Error", msg, "error");
+    } finally {
+      setAddingToCart(null);
     }
   };
 
-  const handleLoadMore = () => {
-    setVisibleCount((prev) => Math.min(prev + 5, sortedProducts.length));
+  // Cuando se cierra el carrito flotante, refresca el contador
+  const handleCartClose = () => {
+    setIsCartOpen(false);
+    loadCartCount();
   };
 
   if (loading) {
@@ -152,8 +206,12 @@ const Catalog = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Catálogo de Productos</h1>
-          <p className="text-gray-600">Encuentra los mejores productos para tu mascota</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Catálogo de Productos
+          </h1>
+          <p className="text-gray-600">
+            Encuentra los mejores productos para tu mascota
+          </p>
         </div>
 
         {/* Búsqueda y botón de filtros */}
@@ -168,21 +226,43 @@ const Catalog = () => {
               className="pl-10"
             />
           </div>
-          <Button
-            variant="outline"
-            className="flex items-center space-x-2"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4" />
-            <span>{showFilters ? "Ocultar filtros" : "Más filtros"}</span>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex items-center space-x-2"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4" />
+              <span>{showFilters ? "Ocultar filtros" : "Más filtros"}</span>
+            </Button>
+
+            {/* Botón del carrito flotante */}
+            <Button
+              onClick={() => setIsCartOpen(true)}
+              className="relative bg-primary-600 hover:bg-primary-700"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Carrito
+              {cartItemCount > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="ml-2 h-5 w-5 rounded-full p-0 text-xs"
+                >
+                  {cartItemCount}
+                </Badge>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Filtros adicionales */}
         {showFilters && (
           <div className="mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Categoría" />
                 </SelectTrigger>
@@ -216,8 +296,12 @@ const Catalog = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="name">Nombre A-Z</SelectItem>
-                  <SelectItem value="price-low">Precio: Menor a Mayor</SelectItem>
-                  <SelectItem value="price-high">Precio: Mayor a Menor</SelectItem>
+                  <SelectItem value="price-low">
+                    Precio: Menor a Mayor
+                  </SelectItem>
+                  <SelectItem value="price-high">
+                    Precio: Mayor a Menor
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -227,7 +311,8 @@ const Catalog = () => {
         {/* Contador */}
         <div className="flex justify-between items-center mb-6">
           <p className="text-gray-600">
-            Mostrando {visibleProducts.length} de {sortedProducts.length} productos encontrados
+            Mostrando {visibleProducts.length} de {sortedProducts.length}{" "}
+            productos encontrados
           </p>
         </div>
 
@@ -236,36 +321,66 @@ const Catalog = () => {
           {visibleProducts.map((product) => (
             <Card
               key={product.id}
-              onClick={() => navigate(`/product/${product.id}`, { state: { product } })}
-              className="group hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+              className="group hover:shadow-lg transition-shadow duration-300"
             >
               <div className="relative">
                 <img
                   src={product.images[0] || "/placeholder.svg"}
                   alt={product.name}
-                  className="w-full h-64 object-cover rounded-t-lg"
+                  className="w-full h-64 object-cover rounded-t-lg cursor-pointer"
+                  onClick={() =>
+                    navigate(`/product/${product.id}`, { state: { product } })
+                  }
                 />
                 {product.original_price && (
                   <span className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                    -{Math.round(((product.original_price - product.price) / product.original_price) * 100)}%
+                    -
+                    {Math.round(
+                      ((product.original_price - product.price) /
+                        product.original_price) *
+                        100
+                    )}
+                    %
                   </span>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log("Producto marcado como favorito");
-                  }}
-                  className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
-                </button>
+                <div className="absolute top-3 right-3 flex space-x-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/product/${product.id}`, {
+                        state: { product },
+                      });
+                    }}
+                    className="p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Eye className="h-4 w-4 text-gray-600 hover:text-blue-500" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log("Producto marcado como favorito");
+                    }}
+                    className="p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+                  </button>
+                </div>
               </div>
 
               <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
+                <h3
+                  className="font-semibold text-gray-900 mb-2 line-clamp-2 cursor-pointer hover:text-primary-600"
+                  onClick={() =>
+                    navigate(`/product/${product.id}`, { state: { product } })
+                  }
+                >
+                  {product.name}
+                </h3>
 
                 <div className="flex items-center space-x-2 mb-3">
-                  <span className="text-lg font-bold text-primary-600">S/.{product.price}</span>
+                  <span className="text-lg font-bold text-primary-600">
+                    S/.{product.price}
+                  </span>
                   {product.original_price && (
                     <span className="text-sm text-gray-400 line-through">
                       S/.{product.original_price}
@@ -275,18 +390,26 @@ const Catalog = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-gray-500">
-                    {product.sizes.length > 0 && `Tallas: ${product.sizes.join(", ")}`}
+                    {product.sizes.length > 0 &&
+                      `Tallas: ${product.sizes.join(", ")}`}
                   </div>
                   <Button
                     size="sm"
                     className="bg-primary-600 hover:bg-primary-700"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleAddToCart(product.id);
+                      handleAddToCart(product.id, 1, product.sizes[0]);
                     }}
+                    disabled={addingToCart === product.id}
                   >
-                    <ShoppingCart className="h-4 w-4 mr-1" />
-                    Agregar
+                    {addingToCart === product.id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <>
+                        <ShoppingCart className="h-4 w-4 mr-1" />
+                        Agregar
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardContent>
@@ -306,10 +429,19 @@ const Catalog = () => {
         {/* No se encontraron productos */}
         {sortedProducts.length === 0 && (
           <div className="text-center mt-12">
-            <p className="text-gray-500">No se encontraron productos que coincidan con tu búsqueda.</p>
+            <p className="text-gray-500">
+              No se encontraron productos que coincidan con tu búsqueda.
+            </p>
           </div>
         )}
       </main>
+
+      {/* Carrito flotante */}
+      <FloatingCart
+        isOpen={isCartOpen}
+        onClose={handleCartClose}
+        onItemAdded={loadCartCount}
+      />
 
       <Footer />
     </div>

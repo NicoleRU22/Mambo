@@ -74,7 +74,7 @@ app.use("/api/search", searchRoutes);
 app.use("/api/offers", offersRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/returns", returnsRoutes);
-app.use("/api/users", userRoutes);  
+app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
 
 // Health check (mantener para compatibilidad)

@@ -1,34 +1,50 @@
 import express from "express";
 import { query } from "../config/database.js";
 import { validateCartItem, validateId } from "../middleware/validation.js";
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken, optionalAuth } from "../middleware/auth.js";
+import prisma from "../lib/prisma.js";
 
 const router = express.Router();
 
 // GET /api/cart - Obtener carrito del usuario
-router.get("/", authenticateToken, async (req, res) => {
+// GET /api/cart
+router.get("/", optionalAuth, async (req, res) => {
+  const userId = req.user?.id || null;
+
+  if (!userId) {
+    return res.status(200).json({
+      items: [],
+      summary: { subtotal: 0, shipping: 0, total: 0, itemCount: 0 },
+    });
+  }
+
   try {
-    const userId = req.user.id;
+    const cartItems = await prisma.cartItem.findMany({
+      where: {
+        userId,
+        product: { isActive: true },
+      },
+      include: {
+        product: {
+          select: {
+            name: true,
+            price: true,
+            images: true,
+            stock: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-    const cartItems = await query(
-      `
-      SELECT ci.*, p.name, p.price, p.images, p.stock as product_stock
-      FROM cart_items ci
-      JOIN products p ON ci.product_id = p.id
-      WHERE ci.user_id = ? AND p.is_active = 1
-      ORDER BY ci.created_at DESC
-    `,
-      [userId]
-    );
-
-    // Procesar imágenes JSON
-    const processedItems = cartItems.map((item) => ({
+    const items = cartItems.map((item) => ({
       ...item,
-      images: item.images ? JSON.parse(item.images) : [],
+      ...item.product,
     }));
 
-    // Calcular totales
-    const subtotal = processedItems.reduce(
+    const subtotal = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
@@ -36,12 +52,12 @@ router.get("/", authenticateToken, async (req, res) => {
     const total = subtotal + shipping;
 
     res.json({
-      items: processedItems,
+      items,
       summary: {
         subtotal: parseFloat(subtotal.toFixed(2)),
         shipping: parseFloat(shipping.toFixed(2)),
         total: parseFloat(total.toFixed(2)),
-        itemCount: processedItems.length,
+        itemCount: items.length,
       },
     });
   } catch (error) {
@@ -51,16 +67,24 @@ router.get("/", authenticateToken, async (req, res) => {
 });
 
 // POST /api/cart - Agregar producto al carrito
-router.post("/", authenticateToken, validateCartItem, async (req, res) => {
+router.post("/", optionalAuth, validateCartItem, async (req, res) => {
   try {
     const userId = req.user.id;
     const { product_id, quantity, size } = req.body;
 
-    // Verificar que el producto existe y tiene stock
-    const [product] = await query(
-      "SELECT id, name, price, stock FROM products WHERE id = ? AND is_active = 1",
-      [product_id]
-    );
+    // Verificar que el producto existe y tiene stock (usando Prisma)
+    const product = await prisma.product.findFirst({
+      where: {
+        id: product_id,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+      },
+    });
 
     if (!product) {
       return res.status(404).json({ error: "Producto no encontrado" });
@@ -70,11 +94,14 @@ router.post("/", authenticateToken, validateCartItem, async (req, res) => {
       return res.status(400).json({ error: "Stock insuficiente" });
     }
 
-    // Verificar si el producto ya está en el carrito
-    const [existingItem] = await query(
-      "SELECT id, quantity FROM cart_items WHERE user_id = ? AND product_id = ? AND size = ?",
-      [userId, product_id, size || null]
-    );
+    // Verificar si el producto ya está en el carrito (usando Prisma)
+    const existingItem = await prisma.cartItem.findFirst({
+      where: {
+        userId,
+        productId: product_id,
+        size: size || null,
+      },
+    });
 
     if (existingItem) {
       // Actualizar cantidad
@@ -83,18 +110,25 @@ router.post("/", authenticateToken, validateCartItem, async (req, res) => {
         return res.status(400).json({ error: "Stock insuficiente" });
       }
 
-      await query(
-        "UPDATE cart_items SET quantity = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-        [newQuantity, existingItem.id]
-      );
+      await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: {
+          quantity: newQuantity,
+          updatedAt: new Date(),
+        },
+      });
 
       res.json({ message: "Cantidad actualizada en el carrito" });
     } else {
       // Agregar nuevo item
-      await query(
-        "INSERT INTO cart_items (user_id, product_id, quantity, size) VALUES (?, ?, ?, ?)",
-        [userId, product_id, quantity, size || null]
-      );
+      await prisma.cartItem.create({
+        data: {
+          userId,
+          productId: product_id,
+          quantity,
+          size: size || null,
+        },
+      });
 
       res.status(201).json({ message: "Producto agregado al carrito" });
     }
@@ -152,17 +186,21 @@ router.delete("/:id", authenticateToken, validateId, async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    // Verificar que el item pertenece al usuario
-    const [cartItem] = await query(
-      "SELECT id FROM cart_items WHERE id = ? AND user_id = ?",
-      [id, userId]
-    );
+    // Verificar que el item pertenece al usuario (Prisma)
+    const cartItem = await prisma.cartItem.findFirst({
+      where: {
+        id: Number(id),
+        userId: userId,
+      },
+    });
 
     if (!cartItem) {
       return res.status(404).json({ error: "Item no encontrado" });
     }
 
-    await query("DELETE FROM cart_items WHERE id = ?", [id]);
+    await prisma.cartItem.delete({
+      where: { id: Number(id) },
+    });
 
     res.json({ message: "Item eliminado del carrito" });
   } catch (error) {
@@ -236,25 +274,28 @@ router.post("/checkout", authenticateToken, async (req, res) => {
       "MB" + Date.now() + Math.random().toString(36).substr(2, 5).toUpperCase();
 
     // Crear pedido
-    const [orderResult] = await query(
-      `
-      INSERT INTO orders (user_id, order_number, total_amount, shipping_address, shipping_city, 
-                         shipping_state, shipping_zip_code, shipping_phone, payment_method, notes)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `,
-      [
-        userId,
-        orderNumber,
-        total,
-        shipping_address,
-        shipping_city,
-        shipping_state,
-        shipping_zip_code,
-        shipping_phone,
-        payment_method,
-        notes || null,
-      ]
-    );
+    const culqiRes = await fetch("https://api.culqi.com/v2/charges", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.CULQI_SECRET_KEY}`,
+      },
+      body: JSON.stringify({
+        amount: total * 100, // en céntimos
+        currency_code: "PEN",
+        email: req.user.email,
+        source_id: req.body.culqiToken, // token del frontend
+      }),
+    });
+
+    const culqiData = await culqiRes.json();
+
+    if (
+      culqiData.object !== "charge" ||
+      culqiData.outcome.type !== "successful_transaction"
+    ) {
+      return res.status(400).json({ error: "Pago rechazado" });
+    }
 
     // Crear items del pedido
     for (const item of cartItems) {
@@ -294,6 +335,50 @@ router.post("/checkout", authenticateToken, async (req, res) => {
   } catch (error) {
     console.error("Checkout error:", error);
     res.status(500).json({ error: "Error al procesar checkout" });
+  }
+});
+
+router.post("/sync", authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+  const { items } = req.body;
+
+  try {
+    for (const item of items) {
+      const { product_id, quantity, size } = item;
+
+      // Busca si ya existe el item en el carrito
+      const existingItem = await prisma.cartItem.findFirst({
+        where: {
+          userId,
+          productId: product_id,
+          size: size || null,
+        },
+      });
+
+      if (existingItem) {
+        await prisma.cartItem.update({
+          where: { id: existingItem.id },
+          data: {
+            quantity: existingItem.quantity + quantity,
+            updatedAt: new Date(),
+          },
+        });
+      } else {
+        await prisma.cartItem.create({
+          data: {
+            userId,
+            productId: product_id,
+            quantity,
+            size: size || null,
+          },
+        });
+      }
+    }
+
+    res.json({ message: "Carrito sincronizado correctamente" });
+  } catch (error) {
+    console.error("Cart sync error:", error);
+    res.status(500).json({ error: "Error al sincronizar carrito" });
   }
 });
 

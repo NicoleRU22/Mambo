@@ -190,6 +190,14 @@ export const cartService = {
       body: JSON.stringify(checkoutData),
     });
   },
+
+  // Sincronizar carrito local con backend
+  syncCart: async (items: { product_id: number; quantity: number; size?: string }[]) => {
+    return apiRequest('/cart/sync', {
+      method: 'POST',
+      body: JSON.stringify({ items }),
+    });
+  },
 };
 
 // Servicios de pedidos

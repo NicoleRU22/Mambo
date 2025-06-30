@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, User, ShoppingCart, Home, Book, LogOut, Settings } from 'lucide-react';
@@ -11,11 +11,37 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { cartService } from '@/services/api';
+import { getLocalCart } from '@/utils/cartLocal';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  const [cartItemCount, setCartItemCount] = useState(0);
+
+  useEffect(() => {
+    const loadCartCount = async () => {
+      if (isAuthenticated) {
+        try {
+          const cartData = await cartService.getCart();
+          setCartItemCount(cartData.summary?.itemCount || 0);
+        } catch (error) {
+          setCartItemCount(0);
+        }
+      } else {
+        const localCart = getLocalCart();
+        setCartItemCount(localCart.reduce((sum, item) => sum + item.quantity, 0));
+      }
+    };
+    loadCartCount();
+    // Escuchar cambios en localStorage
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'guest_cart') loadCartCount();
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [isAuthenticated]);
 
   const handleLogout = () => {
     logout();
@@ -121,7 +147,7 @@ const Header = () => {
             <Button variant="ghost" size="sm" className="relative" onClick={() => navigate('/cart')}>
               <ShoppingCart className="h-5 w-5" />
               <span className="absolute -top-2 -right-2 bg-secondary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
+                {cartItemCount}
               </span>
             </Button>
 

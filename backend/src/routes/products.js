@@ -98,4 +98,72 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Actualizar un producto
+router.put("/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+
+  try {
+    const {
+      name,
+      description,
+      price,
+      originalPrice,
+      stock,
+      petType,
+      images,
+      sizes,
+      categoryId,
+      isActive,
+    } = req.body;
+
+    const updatedProduct = await prisma.product.update({
+      where: { id },
+      data: {
+        name,
+        description,
+        price: parseFloat(price),
+        originalPrice: parseFloat(originalPrice) || undefined,
+        stock: parseInt(stock),
+        petType,
+        images,
+        sizes,
+        categoryId: categoryId ? parseInt(categoryId) : null,
+        isActive,
+      },
+    });
+
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error("Error al actualizar producto:", error);
+    res.status(500).json({ error: "Error al actualizar producto" });
+  }
+});
+
+
+// Eliminar un producto (soft delete)
+router.delete("/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+
+  try {
+    // Soft delete: desactiva el producto
+    const product = await prisma.product.update({
+      where: { id },
+      data: {
+        isActive: false,
+      },
+    });
+
+    res.json({ message: "Producto desactivado correctamente", product });
+  } catch (error) {
+    console.error("Error al eliminar producto:", error);
+    res.status(500).json({ error: "Error al eliminar producto" });
+  }
+});
+
 export default router;

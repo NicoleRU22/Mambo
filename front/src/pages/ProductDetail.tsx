@@ -47,12 +47,7 @@ const ProductDetail = () => {
           />
           <div>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-
-            {product.description && product.description.trim() !== "" ? (
-              <p className="text-gray-500 mb-4">{product.description}</p>
-            ) : (
-              <p className="text-gray-400 italic mb-4">Este producto no tiene descripción.</p>
-            )}
+            <p className="text-gray-500 mb-4">{product.description}</p>
 
             <div className="flex items-center space-x-2 mb-4">
               <span className="text-xl font-semibold text-primary-600">S/. {product.price}</span>
@@ -62,6 +57,10 @@ const ProductDetail = () => {
                 </span>
               )}
             </div>
+
+            <p className="mb-2 text-sm text-gray-600">
+              Valoración: ⭐ {product.rating} ({product.reviews_count} opiniones)
+            </p>
 
             {product.sizes.length > 0 && (
               <p className="mb-2 text-sm text-gray-600">
@@ -74,14 +73,16 @@ const ProductDetail = () => {
 
             <div className="flex space-x-4">
               <Button variant="outline" onClick={() => navigate("/catalog")}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Volver
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
               </Button>
+
 
               <Button className="bg-primary-600 hover:bg-primary-700">
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Agregar al carrito
               </Button>
+              
             </div>
           </div>
         </div>

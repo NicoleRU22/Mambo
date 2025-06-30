@@ -39,7 +39,6 @@ const Catalog = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSize, setSelectedSize] = useState("all");
-  const [selectedPrice, setSelectedPrice] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -77,10 +76,15 @@ const Catalog = () => {
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description &&
         product.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
     const matchesCategory =
       selectedCategory === "all" || product.category_name === selectedCategory;
 
-    return matchesSearch && matchesCategory;
+    const matchesSize =
+      selectedSize === "all" ||
+      product.sizes.map((s) => s.toLowerCase()).includes(selectedSize.toLowerCase());
+
+    return matchesSearch && matchesCategory && matchesSize;
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -152,7 +156,7 @@ const Catalog = () => {
           <p className="text-gray-600">Encuentra los mejores productos para tu mascota</p>
         </div>
 
-        {/* Barra de búsqueda y botón de filtros */}
+        {/* Búsqueda y botón de filtros */}
         <div className="mb-6 flex flex-col lg:flex-row lg:justify-between gap-4">
           <div className="relative w-full lg:w-1/2">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -227,7 +231,7 @@ const Catalog = () => {
           </p>
         </div>
 
-        {/* Productos */}
+        {/* Lista de productos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {visibleProducts.map((product) => (
             <Card
@@ -290,7 +294,7 @@ const Catalog = () => {
           ))}
         </div>
 
-        {/* Botón Cargar más */}
+        {/* Botón cargar más */}
         {visibleCount < sortedProducts.length && (
           <div className="text-center mt-12">
             <Button variant="outline" size="lg" onClick={handleLoadMore}>
@@ -299,7 +303,7 @@ const Catalog = () => {
           </div>
         )}
 
-        {/* No productos */}
+        {/* No se encontraron productos */}
         {sortedProducts.length === 0 && (
           <div className="text-center mt-12">
             <p className="text-gray-500">No se encontraron productos que coincidan con tu búsqueda.</p>

@@ -44,6 +44,7 @@ const Catalog = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [visibleCount, setVisibleCount] = useState(5);
+  const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -111,9 +112,8 @@ const Catalog = () => {
   };
 
   const handleLoadMore = () => {
-  setVisibleCount((prev) => Math.min(prev + 5, sortedProducts.length));
-};
-
+    setVisibleCount((prev) => Math.min(prev + 5, sortedProducts.length));
+  };
 
   if (loading) {
     return (
@@ -152,72 +152,79 @@ const Catalog = () => {
           <p className="text-gray-600">Encuentra los mejores productos para tu mascota</p>
         </div>
 
-        {/* Filtros */}
-        <div className="mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  type="text"
-                  placeholder="Buscar productos..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las categorías</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.name}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedSize} onValueChange={setSelectedSize}>
-              <SelectTrigger>
-                <SelectValue placeholder="Talla" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las tallas</SelectItem>
-                <SelectItem value="xs">XS</SelectItem>
-                <SelectItem value="s">S</SelectItem>
-                <SelectItem value="m">M</SelectItem>
-                <SelectItem value="l">L</SelectItem>
-                <SelectItem value="xl">XL</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger>
-                <SelectValue placeholder="Ordenar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Nombre A-Z</SelectItem>
-                <SelectItem value="price-low">Precio: Menor a Mayor</SelectItem>
-                <SelectItem value="price-high">Precio: Mayor a Menor</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Barra de búsqueda y botón de filtros */}
+        <div className="mb-6 flex flex-col lg:flex-row lg:justify-between gap-4">
+          <div className="relative w-full lg:w-1/2">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="text"
+              placeholder="Buscar productos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
+          <Button
+            variant="outline"
+            className="flex items-center space-x-2"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="h-4 w-4" />
+            <span>{showFilters ? "Ocultar filtros" : "Más filtros"}</span>
+          </Button>
         </div>
 
-        {/* Cantidad mostrada */}
+        {/* Filtros adicionales */}
+        {showFilters && (
+          <div className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las categorías</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedSize} onValueChange={setSelectedSize}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Talla" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las tallas</SelectItem>
+                  <SelectItem value="xs">XS</SelectItem>
+                  <SelectItem value="s">S</SelectItem>
+                  <SelectItem value="m">M</SelectItem>
+                  <SelectItem value="l">L</SelectItem>
+                  <SelectItem value="xl">XL</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Nombre A-Z</SelectItem>
+                  <SelectItem value="price-low">Precio: Menor a Mayor</SelectItem>
+                  <SelectItem value="price-high">Precio: Mayor a Menor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
+        {/* Contador */}
         <div className="flex justify-between items-center mb-6">
           <p className="text-gray-600">
             Mostrando {visibleProducts.length} de {sortedProducts.length} productos encontrados
           </p>
-          <Button variant="outline" className="flex items-center space-x-2">
-            <Filter className="h-4 w-4" />
-            <span>Más filtros</span>
-          </Button>
         </div>
 
         {/* Productos */}
@@ -283,7 +290,7 @@ const Catalog = () => {
           ))}
         </div>
 
-        {/* Cargar más */}
+        {/* Botón Cargar más */}
         {visibleCount < sortedProducts.length && (
           <div className="text-center mt-12">
             <Button variant="outline" size="lg" onClick={handleLoadMore}>
@@ -292,7 +299,7 @@ const Catalog = () => {
           </div>
         )}
 
-        {/* No productos encontrados */}
+        {/* No productos */}
         {sortedProducts.length === 0 && (
           <div className="text-center mt-12">
             <p className="text-gray-500">No se encontraron productos que coincidan con tu búsqueda.</p>

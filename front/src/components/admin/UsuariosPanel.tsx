@@ -276,15 +276,7 @@ export const UsuariosPanel = () => {
                   })}
                 </p>
                 <div className="flex space-x-2 justify-end mt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(usuario.id)}
-                    className="transition-all duration-200 hover:bg-blue-100 hover:text-blue-600"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
+                  
                   <Button
                     variant="outline"
                     size="sm"

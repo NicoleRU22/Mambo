@@ -253,7 +253,7 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
             <div>
               <Label>Tallas Disponibles</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                {["XS", "S", "M", "L", "XL", "XXL"].map((size) => (
+                {["XS", "S", "M", "L", "XL"].map((size) => (
                   <label key={size} className="flex items-center space-x-2">
                     <Checkbox
                       id={size}

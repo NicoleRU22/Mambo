@@ -11,11 +11,10 @@ import {
 } from "@/components/ui/select";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Search, Filter, Star, ShoppingCart, Heart } from "lucide-react";
+import { Search, Filter, ShoppingCart, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { productService, cartService, categoryService } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
-import axios from "axios";
 
 interface Product {
   id: number;
@@ -24,8 +23,6 @@ interface Product {
   price: number;
   original_price?: number;
   images: string[];
-  rating: number;
-  reviews_count: number;
   sizes: string[];
   pet_type: string;
   category_name?: string;
@@ -51,7 +48,6 @@ const Catalog = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  // Cargar productos y categorías
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -59,14 +55,9 @@ const Catalog = () => {
         const [productsData, categoriesData] = await Promise.all([
           productService.getAll(),
           categoryService.getAll(),
-          productService.getAll(),
         ]);
 
-        if (!Array.isArray(productsData)) {
-          console.error("❌ Los productos no son un array:", productsData);
-        }
         setProducts(productsData ?? []);
-
         setCategories(categoriesData || []);
       } catch (err) {
         console.error("Error loading products:", err);
@@ -79,7 +70,6 @@ const Catalog = () => {
     loadData();
   }, []);
 
-  // Filtrar productos
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,15 +81,12 @@ const Catalog = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // Ordenar productos
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case "price-low":
         return a.price - b.price;
       case "price-high":
         return b.price - a.price;
-      case "rating":
-        return b.rating - a.rating;
       case "name":
       default:
         return a.name.localeCompare(b.name);
@@ -114,7 +101,6 @@ const Catalog = () => {
 
     try {
       await cartService.addToCart(productId, 1);
-      // Aquí podrías mostrar un toast de éxito
       console.log("Producto agregado al carrito");
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -125,10 +111,8 @@ const Catalog = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <p>Cargando productos...</p>
-          </div>
+        <div className="container mx-auto px-4 py-8 text-center">
+          <p>Cargando productos...</p>
         </div>
         <Footer />
       </div>
@@ -139,13 +123,11 @@ const Catalog = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <p className="text-red-600">{error}</p>
-            <Button onClick={() => window.location.reload()} className="mt-4">
-              Reintentar
-            </Button>
-          </div>
+        <div className="container mx-auto px-4 py-8 text-center">
+          <p className="text-red-600">{error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Reintentar
+          </Button>
         </div>
         <Footer />
       </div>
@@ -157,20 +139,14 @@ const Catalog = () => {
       <Header />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Catálogo de Productos
-          </h1>
-          <p className="text-gray-600">
-            Encuentra los mejores productos para tu mascota
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Catálogo de Productos</h1>
+          <p className="text-gray-600">Encuentra los mejores productos para tu mascota</p>
         </div>
 
-        {/* Search and Filters */}
+        {/* Filtros */}
         <div className="mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Search */}
             <div className="lg:col-span-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -184,11 +160,7 @@ const Catalog = () => {
               </div>
             </div>
 
-            {/* Category Filter */}
-            <Select
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
-            >
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
                 <SelectValue placeholder="Categoría" />
               </SelectTrigger>
@@ -202,7 +174,6 @@ const Catalog = () => {
               </SelectContent>
             </Select>
 
-            {/* Size Filter */}
             <Select value={selectedSize} onValueChange={setSelectedSize}>
               <SelectTrigger>
                 <SelectValue placeholder="Talla" />
@@ -217,7 +188,6 @@ const Catalog = () => {
               </SelectContent>
             </Select>
 
-            {/* Sort */}
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger>
                 <SelectValue placeholder="Ordenar" />
@@ -225,16 +195,13 @@ const Catalog = () => {
               <SelectContent>
                 <SelectItem value="name">Nombre A-Z</SelectItem>
                 <SelectItem value="price-low">Precio: Menor a Mayor</SelectItem>
-                <SelectItem value="price-high">
-                  Precio: Mayor a Menor
-                </SelectItem>
-                <SelectItem value="rating">Mejor Valorados</SelectItem>
+                <SelectItem value="price-high">Precio: Mayor a Menor</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        {/* Results Count */}
+        {/* Cantidad mostrada */}
         <div className="flex justify-between items-center mb-6">
           <p className="text-gray-600">
             Mostrando {sortedProducts.length} de {products.length} productos
@@ -245,12 +212,12 @@ const Catalog = () => {
           </Button>
         </div>
 
-        {/* Product Grid */}
+        {/* Productos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedProducts.map((product) => (
             <Card
               key={product.id}
-              onClick={() => navigate(`/product/${product.id}`)}
+              onClick={() => navigate(`/product/${product.id}`, { state: { product } })}
               className="group hover:shadow-lg transition-shadow duration-300 cursor-pointer"
             >
               <div className="relative">
@@ -263,9 +230,7 @@ const Catalog = () => {
                   <span className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                     -
                     {Math.round(
-                      ((product.original_price - product.price) /
-                        product.original_price) *
-                        100
+                      ((product.original_price - product.price) / product.original_price) * 100
                     )}
                     %
                   </span>
@@ -282,24 +247,10 @@ const Catalog = () => {
               </div>
 
               <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                  {product.name}
-                </h3>
-
-                <div className="flex items-center space-x-1 mb-2">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm text-gray-600">
-                    {product.rating}
-                  </span>
-                  <span className="text-sm text-gray-400">
-                    ({product.reviews_count})
-                  </span>
-                </div>
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
 
                 <div className="flex items-center space-x-2 mb-3">
-                  <span className="text-lg font-bold text-primary-600">
-                    S/.{product.price}
-                  </span>
+                  <span className="text-lg font-bold text-primary-600">S/.{product.price}</span>
                   {product.original_price && (
                     <span className="text-sm text-gray-400 line-through">
                       S/.{product.original_price}
@@ -309,8 +260,7 @@ const Catalog = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-gray-500">
-                    {product.sizes.length > 0 &&
-                      `Tallas: ${product.sizes.join(", ")}`}
+                    {product.sizes.length > 0 && `Tallas: ${product.sizes.join(", ")}`}
                   </div>
                   <Button
                     size="sm"
@@ -329,20 +279,16 @@ const Catalog = () => {
           ))}
         </div>
 
-        {/* Load More */}
+        {/* Cargar más */}
         {sortedProducts.length === 0 && (
           <div className="text-center mt-12">
-            <p className="text-gray-500">
-              No se encontraron productos que coincidan con tu búsqueda.
-            </p>
+            <p className="text-gray-500">No se encontraron productos que coincidan con tu búsqueda.</p>
           </div>
         )}
 
         {sortedProducts.length > 0 && (
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg">
-              Cargar más productos
-            </Button>
+            <Button variant="outline" size="lg">Cargar más productos</Button>
           </div>
         )}
       </main>

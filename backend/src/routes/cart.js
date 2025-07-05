@@ -40,9 +40,15 @@ router.get("/", optionalAuth, async (req, res) => {
     });
 
     const items = cartItems.map((item) => ({
-      ...item,
-      ...item.product,
-    }));
+  id: item.id,
+  product_id: item.productId,
+  product_name: item.product.name,
+  price: item.product.price,
+  quantity: item.quantity,
+  stock: item.product.stock,
+  image: item.product.images?.[0] || null, // ✅ usa solo la primera imagen
+}));
+
 
     const subtotal = items.reduce(
       (sum, item) => sum + item.price * item.quantity,

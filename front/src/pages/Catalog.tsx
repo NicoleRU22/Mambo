@@ -394,23 +394,73 @@ const Catalog = () => {
                       `Tallas: ${product.sizes.join(", ")}`}
                   </div>
                   <Button
-                    size="sm"
-                    className="bg-primary-600 hover:bg-primary-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddToCart(product.id, 1, product.sizes[0]);
-                    }}
-                    disabled={addingToCart === product.id}
-                  >
-                    {addingToCart === product.id ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    ) : (
-                      <>
-                        <ShoppingCart className="h-4 w-4 mr-1" />
-                        Agregar
-                      </>
-                    )}
-                  </Button>
+  size="sm"
+  className="bg-primary-600 hover:bg-primary-700"
+  onClick={async (e) => {
+    e.stopPropagation();
+
+    if (product.sizes.length > 0) {
+      const sizeOptions = product.sizes.reduce((acc, size) => {
+        acc[size] = size;
+        return acc;
+      }, {} as Record<string, string>);
+
+      const { value: selectedSize } = await Swal.fire({
+        title: "Selecciona una talla",
+        html: `
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <p style="font-size: 14px; color: #4B5563;">Selecciona una talla disponible para este producto.</p>
+            <select id="tallaSelect" class="swal2-input" style="width: 100%; padding: 0.5rem; font-size: 14px;">
+              <option value="">Elige una talla</option>
+              ${Object.keys(sizeOptions)
+                .map((key) => `<option value="${key}">${sizeOptions[key]}</option>`)
+                .join("")}
+            </select>
+            <img src="/guia-tallas.png" alt="Guía de tallas"
+              style="width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Agregar al carrito",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#8b5cf6",
+        customClass: {
+          popup: "swal-wide rounded-xl max-w-[90vw] sm:max-w-md",
+          title: "text-lg font-semibold",
+        },
+        didOpen: () => {
+          // Focus automático en el select
+          const selectEl = document.getElementById("tallaSelect") as HTMLSelectElement;
+          if (selectEl) selectEl.focus();
+        },
+        preConfirm: () => {
+          const value = (document.getElementById("tallaSelect") as HTMLSelectElement)?.value;
+          if (!value) {
+            Swal.showValidationMessage("Debes seleccionar una talla");
+            return;
+          }
+          return value;
+        },
+      });
+
+      if (selectedSize) {
+        handleAddToCart(product.id, 1, selectedSize);
+      }
+    } else {
+      handleAddToCart(product.id, 1, "");
+    }
+  }}
+  disabled={addingToCart === product.id}
+>
+  {addingToCart === product.id ? (
+    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+  ) : (
+    <>
+      <ShoppingCart className="h-4 w-4 mr-1" />
+      Agregar
+    </>
+  )}
+</Button>
                 </div>
               </CardContent>
             </Card>

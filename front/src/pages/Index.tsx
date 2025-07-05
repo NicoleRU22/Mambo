@@ -3,7 +3,7 @@ import React from 'react';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import CategoriesSection from '@/components/CategoriesSection';
-import FeaturedProducts from '@/components/FeaturedProducts';
+{/*import FeaturedProducts from '@/components/FeaturedProducts';*/}
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -13,7 +13,6 @@ const Index = () => {
       <main>
         <HeroSection />
         <CategoriesSection />
-        <FeaturedProducts />
       </main>
       <Footer />
     </div>

@@ -45,6 +45,7 @@ model Product {
   petType       PetType
   images        String[]
   sizes         String[]
+  colors        String[]
   rating        Float       @default(0)
   reviewsCount  Int         @default(0)
   isActive      Boolean     @default(true)

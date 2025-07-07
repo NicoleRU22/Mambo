@@ -5,9 +5,6 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
-import { cartService } from "@/services/api";
-import { useAuth } from "@/contexts/AuthContext";
-import { addToLocalCart, getLocalCart } from "@/utils/cartLocal";
 
 interface Product {
   id: number;
@@ -28,74 +25,35 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(state?.product || null);
-  const { isAuthenticated, user } = useAuth();
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     if (!state?.product) {
       console.warn("Producto no recibido, accediste directamente a /product/:id sin pasar datos.");
-      // Si lo deseas, puedes agregar aquí una llamada para buscar el producto por ID desde la API.
     }
   }, [state]);
 
-  const handleAddToCart = async () => {
-    if (!product) return;
-
-    let selectedSize = "";
-    if (product.sizes.length > 0) {
-      const sizeOptions = product.sizes.reduce((acc, size) => {
-        acc[size] = size;
-        return acc;
-      }, {} as Record<string, string>);
-
-      const { value } = await Swal.fire({
+  const handleAddToCart = () => {
+    if (product?.sizes.length && !selectedSize) {
+      Swal.fire({
+        icon: "warning",
         title: "Selecciona una talla",
-        html: `
-          <div style="display: flex; flex-direction: column; gap: 1rem;">
-            <p style="font-size: 14px; color: #4B5563;">Selecciona una talla disponible para este producto.</p>
-            <select id="tallaSelect" class="swal2-input" style="width: 100%; padding: 0.5rem; font-size: 14px;">
-              <option value="">Elige una talla</option>
-              ${Object.keys(sizeOptions)
-                .map((key) => `<option value="${key}">${sizeOptions[key]}</option>`)
-                .join("")}
-            </select>
-            <img src="/guia-tallas.png" alt="Guía de tallas"
-              style="width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />
-          </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: "Agregar al carrito",
-        cancelButtonText: "Cancelar",
-        confirmButtonColor: "#8b5cf6",
-        customClass: {
-          popup: "swal-wide rounded-xl max-w-[90vw] sm:max-w-md",
-        },
-        preConfirm: () => {
-          const select = document.getElementById("tallaSelect") as HTMLSelectElement;
-          if (!select.value) {
-            Swal.showValidationMessage("Debes seleccionar una talla");
-            return;
-          }
-          return select.value;
-        },
+        text: "Debes elegir una talla antes de agregar el producto al carrito.",
+        confirmButtonColor: "#8b5cf6", 
+        confirmButtonText: "Entendido",
       });
-
-      if (!value) return;
-      selectedSize = value;
+      return;
     }
 
-    try {
-      if (!user) {
-        addToLocalCart(product.id, 1, selectedSize);
-        Swal.fire("Agregado", "Producto añadido al carrito local", "success");
-        return;
-      }
+    Swal.fire({
+      icon: "success",
+      title: "Agregado al carrito",
+      text: `Producto ${product?.name}${selectedSize ? ` (Talla: ${selectedSize})` : ""} agregado correctamente.`,
+      confirmButtonColor: "#8b5cf6", 
+    });
 
-      await cartService.addToCart(product.id, 1);
-      Swal.fire("¡Éxito!", "Producto agregado al carrito", "success");
-    } catch (error) {
-      console.error("Error al agregar al carrito:", error);
-      Swal.fire("Error", "No se pudo agregar al carrito", "error");
-    }
+    console.log("Producto agregado al carrito:", product?.name, "Talla:", selectedSize || "única");
   };
 
   if (!product) {
@@ -125,10 +83,32 @@ const ProductDetail = () => {
               )}
             </div>
 
+            {/* Selección de talla */}
             {product.sizes.length > 0 && (
-              <p className="mb-2 text-sm text-gray-600">
-                Tallas disponibles: {product.sizes.join(", ")}
-              </p>
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">Tallas disponibles:</p>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`border rounded px-4 py-1 text-sm ${
+                        selectedSize === size
+                          ? "bg-primary-600 text-white"
+                          : "bg-white text-gray-700"
+                      } hover:bg-primary-100 border-primary-600`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setShowGuide(true)}
+                  className="mt-3 text-blue-600 underline text-sm"
+                >
+                  Ver guía de tallas
+                </button>
+              </div>
             )}
 
             <p className="mb-2 text-sm text-gray-600">Tipo de mascota: {product.pet_type}</p>
@@ -140,7 +120,10 @@ const ProductDetail = () => {
                 Volver
               </Button>
 
-              <Button className="bg-primary-600 hover:bg-primary-700" onClick={handleAddToCart}>
+              <Button
+                className="bg-primary-600 hover:bg-primary-700"
+                onClick={handleAddToCart}
+              >
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Agregar al carrito
               </Button>
@@ -148,7 +131,28 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
       <Footer />
+
+      {/* Modal guía de tallas */}
+      {showGuide && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-2xl w-full relative">
+            <button
+              onClick={() => setShowGuide(false)}
+              className="absolute top-2 right-3 text-gray-500 hover:text-red-500 text-lg"
+            >
+              ×
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Guía de Tallas</h2>
+            <img
+              src="/guia-tallas.png"
+              alt="Guía de Tallas"
+              className="w-full max-h-[400px] object-contain"
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 };

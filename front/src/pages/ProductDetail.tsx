@@ -5,6 +5,9 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
+import { cartService } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { addToLocalCart, getLocalCart } from "@/utils/cartLocal";
 
 interface Product {
   id: number;
@@ -24,6 +27,7 @@ const ProductDetail = () => {
   const { state } = useLocation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [product, setProduct] = useState<Product | null>(state?.product || null);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [showGuide, setShowGuide] = useState(false);
@@ -34,7 +38,7 @@ const ProductDetail = () => {
     }
   }, [state]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (product?.sizes.length && !selectedSize) {
       Swal.fire({
         icon: "warning",
@@ -46,14 +50,35 @@ const ProductDetail = () => {
       return;
     }
 
-    Swal.fire({
-      icon: "success",
-      title: "Agregado al carrito",
-      text: `Producto ${product?.name}${selectedSize ? ` (Talla: ${selectedSize})` : ""} agregado correctamente.`,
-      confirmButtonColor: "#8b5cf6", 
-    });
-
-    console.log("Producto agregado al carrito:", product?.name, "Talla:", selectedSize || "única");
+    try {
+      if (!isAuthenticated) {
+        // Usuario no autenticado - usar carrito local
+        addToLocalCart(product.id, 1, selectedSize || undefined);
+        Swal.fire({
+          icon: "success",
+          title: "Agregado al carrito local",
+          text: `Producto ${product?.name}${selectedSize ? ` (Talla: ${selectedSize})` : ""} agregado correctamente.`,
+          confirmButtonColor: "#8b5cf6", 
+        });
+      } else {
+        // Usuario autenticado - usar carrito del servidor
+        await cartService.addToCart(product.id, 1, selectedSize || undefined);
+        Swal.fire({
+          icon: "success",
+          title: "Agregado al carrito",
+          text: `Producto ${product?.name}${selectedSize ? ` (Talla: ${selectedSize})` : ""} agregado correctamente.`,
+          confirmButtonColor: "#8b5cf6", 
+        });
+      }
+    } catch (error) {
+      console.error("Error al agregar al carrito:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo agregar el producto al carrito. Inténtalo de nuevo.",
+        confirmButtonColor: "#8b5cf6", 
+      });
+    }
   };
 
   if (!product) {

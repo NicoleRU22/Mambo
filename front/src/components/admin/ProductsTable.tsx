@@ -30,6 +30,7 @@ import {
   Eye,
   MoreHorizontal
 } from 'lucide-react';
+import Swal from "sweetalert2";
 
 import { EditProductModal } from './EditProductModal';
 import { AddProductModal } from './AddProductModal';
@@ -80,7 +81,7 @@ export const ProductsTable = () => {
       try {
         setLoading(true);
         const [productsData, categoriesData] = await Promise.all([
-          productService.getAll(),
+          productService.getAllAdmin(),
           categoryService.getAll(),
         ]);
 
@@ -128,15 +129,23 @@ export const ProductsTable = () => {
   };
 
   const handleDeleteProduct = async (productId: number) => {
-    const isConfirmed = window.confirm('¿Estás seguro de que deseas eliminar este producto?');
-    if (!isConfirmed) return;
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar"
+    });
+    if (!result.isConfirmed) return;
 
     try {
       await productService.delete(productId);
       setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+      await Swal.fire("Eliminado", "Producto eliminado correctamente", "success");
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Error al eliminar el producto');
+      await Swal.fire("Error", "No se pudo eliminar el producto. Intenta de nuevo.", "error");
     }
   };
 

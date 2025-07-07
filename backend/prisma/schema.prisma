@@ -28,7 +28,7 @@ model User {
 
 model Category {
   id          Int       @id @default(autoincrement())
-  name        String
+  name        String    @unique  
   description String?
   image       String?
   createdAt   DateTime  @default(now())
@@ -37,7 +37,7 @@ model Category {
 
 model Product {
   id            Int         @id @default(autoincrement())
-  name          String
+  name          String      @unique
   description   String?
   price         Float
   originalPrice Float?
@@ -51,6 +51,7 @@ model Product {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   categoryId    Int?
+  colors        String[]
   cartItems     CartItem[]
   orderItems    OrderItem[]
   category      Category?   @relation(fields: [categoryId], references: [id])

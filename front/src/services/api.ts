@@ -349,6 +349,26 @@ export const categoryService = {
   getWithProducts: async () => {
     return apiRequest('/categories/with-products');
   },
+
+  create: async (categoryData: { name: string; description?: string; image?: string }) => {
+    return apiRequest('/categories', {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  update: async (id: number, categoryData: { name?: string; description?: string; image?: string }) => {
+    return apiRequest(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  delete: async (id: number) => {
+    return apiRequest(`/categories/${id}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // Health check

@@ -10,6 +10,7 @@ import {
   Settings,
   FileText,
   UserCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import Swal from 'sweetalert2'; // Importamos SweetAlert2
 
@@ -22,8 +23,10 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard' },
     { icon: Package, label: 'Productos' },
+    { icon: Package, label: 'Categorías' },
     { icon: ShoppingCart, label: 'Pedidos' },
     { icon: Users, label: 'Usuarios' },
+    { icon: ShieldCheck, label: 'Validaciones' },
     { icon: BarChart3, label: 'Reportes' },
     { icon: FileText, label: 'Blog' },
     { icon: MessageSquare, label: 'Quejas y Sugerencias' },

@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { AdminSidebar } from './AdminSidebar';
 import { ProductsTable } from './ProductsTable';
 import { AdminBlog } from './AdminBlog'; // ← importar el nuevo componente
+import { CategoriasPanel } from './CategoriasPanel';
 
 export const AdminLayout = () => {
   const [activeSection, setActiveSection] = useState('Dashboard');
@@ -13,6 +13,7 @@ export const AdminLayout = () => {
       <div className="flex-1 p-6 overflow-auto">
         {activeSection === 'Dashboard' && <h1 className="text-2xl font-bold">Bienvenido al Dashboard</h1>}
         {activeSection === 'Productos' && <ProductsTable />}
+        {activeSection === 'Categorías' && <CategoriasPanel />}
         {activeSection === 'Blog' && <AdminBlog />} {/* ← muestra el contenido del blog */}
       </div>
     </div>

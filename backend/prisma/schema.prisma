@@ -52,7 +52,6 @@ model Product {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   categoryId    Int?
-  colors        String[]
   cartItems     CartItem[]
   orderItems    OrderItem[]
   category      Category?   @relation(fields: [categoryId], references: [id])

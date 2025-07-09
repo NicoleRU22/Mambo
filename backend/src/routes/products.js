@@ -84,7 +84,7 @@ router.post("/", async (req, res) => {
         price: parseFloat(price),
         originalPrice: parseFloat(originalPrice) || undefined,
         stock: parseInt(stock),
-        petType,
+        petType: petType.toUpperCase(),
         images,
         sizes,
         categoryId: categoryId ? parseInt(categoryId) : null,
@@ -127,7 +127,7 @@ router.put("/:id", async (req, res) => {
         price: parseFloat(price),
         originalPrice: parseFloat(originalPrice) || undefined,
         stock: parseInt(stock),
-        petType,
+        petType: petType.toUpperCase(),
         images,
         sizes,
         categoryId: categoryId ? parseInt(categoryId) : null,
@@ -142,8 +142,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-
-// Eliminar un producto (soft delete)
+// Eliminar un producto (eliminación real)
 router.delete("/:id", async (req, res) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) {
@@ -151,18 +150,33 @@ router.delete("/:id", async (req, res) => {
   }
 
   try {
-    // Soft delete: desactiva el producto
-    const product = await prisma.product.update({
-      where: { id },
-      data: {
-        isActive: false,
-      },
+    // Eliminar items de carrito relacionados
+    await prisma.cartItem.deleteMany({
+      where: { productId: id }
     });
 
-    res.json({ message: "Producto desactivado correctamente", product });
+    // Ahora sí eliminar el producto
+    await prisma.product.delete({
+      where: { id },
+    });
+
+    res.json({ message: "Producto eliminado correctamente" });
   } catch (error) {
     console.error("Error al eliminar producto:", error);
     res.status(500).json({ error: "Error al eliminar producto" });
+  }
+});
+
+// Obtener todos los productos (sin filtro de isActive) para admin
+router.get("/admin/all", async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      include: { category: true },
+    });
+    res.json(products);
+  } catch (error) {
+    console.error("Error al obtener productos (admin):", error);
+    res.status(500).json({ error: "Error al obtener productos" });
   }
 });
 

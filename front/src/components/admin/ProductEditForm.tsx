@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import Swal from "sweetalert2";
 
 interface Product {
   id: number;
@@ -86,7 +87,8 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
     price.trim() !== '' &&
     !isNaN(Number(price)) &&
     stock >= 0 &&
-    petType.trim() !== '';
+    petType.trim() !== '' &&
+    (imageFile || imageUrl.trim() !== '' || images.length > 0);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -108,9 +110,15 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
   };
 
   const handleSave = async () => {
-    const updatedImages = imageSource === 'file' && imageFile 
-      ? [URL.createObjectURL(imageFile)] 
-      : imageUrl ? [imageUrl] : images;
+    if (!isFormValid) {
+      Swal.fire("Error", "Completa todos los campos obligatorios y selecciona una imagen.", "error");
+      return;
+    }
+    const updatedImages = imageSource === 'file' && imageFile
+      ? [URL.createObjectURL(imageFile)]
+      : imageSource === 'url' && imageUrl
+      ? [imageUrl]
+      : images;
 
     const updatedProduct: Product = {
       ...product,
@@ -264,65 +272,40 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
           <div className="space-y-4">
             <Label className="block">Imagen del producto</Label>
 
-            <div className="flex items-center space-x-4">
-              <label className="flex items-center space-x-2">
+            <div className="flex gap-2 items-center mb-2">
+              <label>
                 <input
                   type="radio"
-                  name="imageSource"
-                  value="file"
                   checked={imageSource === 'file'}
                   onChange={() => setImageSource('file')}
-                />
-                <span>Archivo</span>
+                /> Archivo
               </label>
-              <label className="flex items-center space-x-2">
+              <label>
                 <input
                   type="radio"
-                  name="imageSource"
-                  value="url"
                   checked={imageSource === 'url'}
                   onChange={() => setImageSource('url')}
-                />
-                <span>URL</span>
+                /> URL
               </label>
             </div>
 
-            {imageSource === 'file' && (
-              <div className="space-y-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="fileUpload"
-                />
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Seleccionar archivo
-                </Button>
-              </div>
-            )}
-
-            {imageSource === 'url' && (
+            {imageSource === 'file' ? (
+              <Input type="file" accept="image/*" onChange={handleFileChange} />
+            ) : (
               <Input
-                placeholder="https://ejemplo.com/imagen.jpg"
+                type="text"
+                placeholder="https://..."
                 value={imageUrl}
                 onChange={handleUrlChange}
               />
             )}
 
             {preview && (
-              <div className="mt-4">
-                <img
-                  src={preview}
-                  alt="Vista previa"
-                  className="w-full h-48 object-cover rounded-lg border"
-                />
-              </div>
+              <img
+                src={preview}
+                alt="Vista previa"
+                className="mt-2 rounded border w-32 h-32 object-contain"
+              />
             )}
           </div>
         </div>

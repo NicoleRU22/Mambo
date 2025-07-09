@@ -69,7 +69,13 @@ const Catalog = () => {
           categoryService.getAll(),
         ]);
 
-        setProducts(productsData ?? []);
+        // Map products to add category_name for filtering
+        const mappedProducts = (productsData ?? []).map((p) => ({
+          ...p,
+          category_name: p.category?.name || "",
+        }));
+
+        setProducts(mappedProducts);
         setCategories(categoriesData || []);
       } catch (err) {
         console.error("Error loading products:", err);

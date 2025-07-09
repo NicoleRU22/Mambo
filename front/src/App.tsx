@@ -27,6 +27,7 @@ import TermsOfService from "./pages/TermsOfService";
 import Newsletter from "./pages/Newsletter";
 import TermsAndConditions from "./pages/Terms-and-conditions";
 import PrivacyPolicy from "./pages/Privacy-policy";
+import Categories from './pages/Categories';
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ const App = () => (
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/admin/contactos" element={<AdminContact />} />
           <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/categories" element={<Categories />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         {/* ❌ FIN del BrowserRouter */}

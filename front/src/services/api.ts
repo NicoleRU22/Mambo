@@ -144,6 +144,10 @@ export const productService = {
   getCount: async () => {
     return apiRequest('/products/count');
   },
+
+  getAllAdmin: async () => {
+    return apiRequest('/products/admin/all');
+  },
 };
 
 // Servicios del carrito
@@ -152,10 +156,10 @@ export const cartService = {
     return apiRequest('/cart');
   },
 
-  addToCart: async (productId: number, quantity: number = 1) => {
+  addToCart: async (productId: number, quantity: number = 1, size?: string) => {
     return apiRequest('/cart', {
       method: 'POST',
-      body: JSON.stringify({ product_id: productId, quantity }),
+      body: JSON.stringify({ product_id: productId, quantity, size }),
     });
   },
 
@@ -344,6 +348,26 @@ export const categoryService = {
 
   getWithProducts: async () => {
     return apiRequest('/categories/with-products');
+  },
+
+  create: async (categoryData: { name: string; description?: string; image?: string }) => {
+    return apiRequest('/categories', {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  update: async (id: number, categoryData: { name?: string; description?: string; image?: string }) => {
+    return apiRequest(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  delete: async (id: number) => {
+    return apiRequest(`/categories/${id}`, {
+      method: 'DELETE',
+    });
   },
 };
 

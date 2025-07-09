@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Swal from "sweetalert2";
 
 interface Product {
   id: number;
@@ -116,13 +117,18 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
     formData.price.trim() !== "" &&
     !isNaN(Number(formData.price)) &&
     formData.stock >= 0 &&
-    formData.petType.trim() !== "";
+    formData.petType.trim() !== "" &&
+    (imageFile || imageUrl.trim() !== "");
 
   const handleSubmit = async () => {
-    const images = imageUrl
-      ? [imageUrl]
-      : imageFile
+    if (!isFormValid) {
+      Swal.fire("Error", "Completa todos los campos obligatorios y selecciona una imagen.", "error");
+      return;
+    }
+    const images = imageFile
       ? [URL.createObjectURL(imageFile)]
+      : imageUrl
+      ? [imageUrl]
       : [];
 
     const newProduct: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
@@ -134,9 +140,7 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
         : undefined,
       stock: formData.stock,
       petType: formData.petType,
-      categoryId: formData.categoryId
-        ? parseInt(formData.categoryId)
-        : undefined,
+      categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
       sizes: formData.sizes,
       images,
       isActive: formData.isActive,
@@ -283,68 +287,39 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
 
           <div className="space-y-4">
             <Label>Imagen del producto</Label>
-
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const file = e.dataTransfer.files?.[0];
-                if (file && file.type.startsWith("image/")) {
-                  setImageFile(file);
-                  setImageUrl("");
-                }
-              }}
-              className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center text-gray-500 cursor-pointer hover:bg-gray-50 transition"
-            >
-              Arrastra una imagen aquí
+            <div className="flex gap-2 items-center mb-2">
+              <label>
+                <input
+                  type="radio"
+                  checked={!useUrlInput}
+                  onChange={() => setUseUrlInput(false)}
+                /> Archivo
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  checked={useUrlInput}
+                  onChange={() => setUseUrlInput(true)}
+                /> URL
+              </label>
             </div>
-
-            <p className="text-center text-gray-500 text-sm">o</p>
-
-            <div className="space-y-2">
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                id="uploadFile"
-                onChange={handleFileChange}
+            {!useUrlInput ? (
+              <Input type="file" accept="image/*" onChange={handleFileChange} />
+            ) : (
+              <Input
+                type="text"
+                placeholder="https://..."
+                value={imageUrl}
+                onChange={handleImageUrlChange}
               />
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => document.getElementById("uploadFile")?.click()}
-              >
-                Subir desde archivos
-              </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full text-blue-600"
-                onClick={() => setUseUrlInput(!useUrlInput)}
-              >
-                {useUrlInput
-                  ? "Ocultar campo de URL"
-                  : "Ingresar URL de imagen"}
-              </Button>
-
-              {useUrlInput && (
-                <Input
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                  value={imageUrl}
-                  onChange={handleImageUrlChange}
-                />
-              )}
-
-              {preview && (
-                <img
-                  src={preview}
-                  alt="Vista previa"
-                  className="rounded-md max-w-full max-h-40 object-contain border mt-2 mx-auto"
-                />
-              )}
-            </div>
+            )}
+            {preview && (
+              <img
+                src={preview}
+                alt="Vista previa"
+                className="mt-2 rounded border w-32 h-32 object-contain"
+              />
+            )}
           </div>
         </div>
 

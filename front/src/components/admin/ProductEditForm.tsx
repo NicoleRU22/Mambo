@@ -25,6 +25,7 @@ interface Product {
   petType: string;
   images: string[];
   sizes: string[];
+  colors?: string[]; // NUEVO
   categoryId?: number;
   category?: {
     id: number;
@@ -48,11 +49,11 @@ interface ProductEditFormProps {
   categories: Category[];
 }
 
-export const ProductEditForm: React.FC<ProductEditFormProps> = ({ 
-  product, 
-  onCancel, 
-  onSave, 
-  categories 
+export const ProductEditForm: React.FC<ProductEditFormProps> = ({
+  product,
+  onCancel,
+  onSave,
+  categories
 }) => {
   const [name, setName] = useState<string>(product.name);
   const [description, setDescription] = useState<string>(product.description || '');
@@ -62,8 +63,10 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
   const [petType, setPetType] = useState<string>(product.petType);
   const [categoryId, setCategoryId] = useState<string>(product.categoryId?.toString() || '');
   const [sizes, setSizes] = useState<string[]>(product.sizes || []);
+  const [colors, setColors] = useState<string[]>(product.colors || []); // NUEVO
   const [images, setImages] = useState<string[]>(product.images || []);
   const [isActive, setIsActive] = useState<boolean>(product.isActive);
+  const [isClothingCategory, setIsClothingCategory] = useState<boolean>(false); // NUEVO
 
   const [imageSource, setImageSource] = useState<'file' | 'url'>('url');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -71,6 +74,15 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
   const [preview, setPreview] = useState<string>(images[0] || '');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+  const selected = categories.find((c) => c.id.toString() === categoryId);
+  const clothingNames = ['ropa', 'ropa de temporada'];
+  setIsClothingCategory(
+    selected ? clothingNames.includes(selected.name.toLowerCase()) : false
+  );
+}, [categoryId, categories]);
+
 
   useEffect(() => {
     if (imageSource === 'file' && imageFile) {
@@ -102,10 +114,18 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
   };
 
   const handleSizeChange = (size: string) => {
-    setSizes(prev => 
-      prev.includes(size) 
+    setSizes(prev =>
+      prev.includes(size)
         ? prev.filter(s => s !== size)
         : [...prev, size]
+    );
+  };
+
+  const handleColorChange = (color: string) => {
+    setColors(prev =>
+      prev.includes(color)
+        ? prev.filter(c => c !== color)
+        : [...prev, color]
     );
   };
 
@@ -114,11 +134,12 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
       Swal.fire("Error", "Completa todos los campos obligatorios y selecciona una imagen.", "error");
       return;
     }
+
     const updatedImages = imageSource === 'file' && imageFile
       ? [URL.createObjectURL(imageFile)]
       : imageSource === 'url' && imageUrl
-      ? [imageUrl]
-      : images;
+        ? [imageUrl]
+        : images;
 
     const updatedProduct: Product = {
       ...product,
@@ -130,6 +151,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
       petType,
       categoryId: categoryId ? parseInt(categoryId) : undefined,
       sizes,
+      colors: isClothingCategory ? colors : [], // NUEVO
       images: updatedImages,
       isActive,
     };
@@ -213,7 +235,6 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
                     <SelectItem value="cat">Gato</SelectItem>
                     <SelectItem value="bird">Ave</SelectItem>
                     <SelectItem value="fish">Pez</SelectItem>
-                    <SelectItem value="other">Otro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -251,6 +272,24 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
               </div>
             </div>
 
+            {isClothingCategory && (
+              <div>
+                <Label>Colores Disponibles</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                  {['Rojo', 'Azul', 'Negro', 'Blanco', 'Verde', 'Amarillo'].map((color) => (
+                    <label key={color} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={color}
+                        checked={colors.includes(color)}
+                        onCheckedChange={() => handleColorChange(color)}
+                      />
+                      <span>{color}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <Label>Estado</Label>
               <div className="mt-1">
@@ -271,7 +310,6 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
           {/* Imagen producto */}
           <div className="space-y-4">
             <Label className="block">Imagen del producto</Label>
-
             <div className="flex gap-2 items-center mb-2">
               <label>
                 <input
@@ -322,4 +360,3 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
     </Card>
   );
 };
-

@@ -19,8 +19,6 @@ import { Search, Plus, Edit, Trash2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { categoryService } from '@/services/api';
 
-const PLACEHOLDER = '/placeholder.svg';
-
 interface Category {
   id: number;
   name: string;
@@ -28,6 +26,8 @@ interface Category {
   image?: string;
   _count?: { products: number };
 }
+
+type CategoryInput = { name: string; description?: string };
 
 export const CategoriasPanel = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -54,7 +54,7 @@ export const CategoriasPanel = () => {
     }
   };
 
-  const handleAdd = async (cat: Partial<Category>) => {
+  const handleAdd = async (cat: CategoryInput) => {
     try {
       await categoryService.create(cat);
       await loadCategories();
@@ -65,7 +65,7 @@ export const CategoriasPanel = () => {
     }
   };
 
-  const handleEdit = async (cat: Partial<Category>) => {
+  const handleEdit = async (cat: CategoryInput) => {
     if (!selectedCategory) return;
     try {
       await categoryService.update(selectedCategory.id, cat);
@@ -128,7 +128,6 @@ export const CategoriasPanel = () => {
               <TableHeader>
                 <TableRow className="bg-gray-100">
                   <TableHead>ID</TableHead>
-                  <TableHead>Imagen</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Descripción</TableHead>
                   <TableHead>Productos</TableHead>
@@ -139,13 +138,6 @@ export const CategoriasPanel = () => {
                 {filtered.map(cat => (
                   <TableRow key={cat.id}>
                     <TableCell>{cat.id}</TableCell>
-                    <TableCell>
-                      <img
-                        src={cat.image || PLACEHOLDER}
-                        alt={cat.name}
-                        className="w-16 h-16 object-cover rounded"
-                      />
-                    </TableCell>
                     <TableCell>{cat.name}</TableCell>
                     <TableCell>{cat.description}</TableCell>
                     <TableCell>{cat._count?.products ?? 0}</TableCell>
@@ -161,7 +153,7 @@ export const CategoriasPanel = () => {
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-gray-500">No se encontraron categorías.</TableCell>
+                    <TableCell colSpan={5} className="text-center text-gray-500">No se encontraron categorías.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -169,12 +161,22 @@ export const CategoriasPanel = () => {
           </div>
         </CardContent>
       </Card>
+
       {/* Modales para agregar/editar */}
-      {isAddOpen && <CategoriaModal onClose={() => setIsAddOpen(false)} onSave={handleAdd} />}
+      {isAddOpen && (
+        <CategoriaModal
+          onClose={() => setIsAddOpen(false)}
+          onSave={handleAdd}
+        />
+      )}
+
       {isEditOpen && selectedCategory && (
         <CategoriaModal
           category={selectedCategory}
-          onClose={() => { setIsEditOpen(false); setSelectedCategory(null); }}
+          onClose={() => {
+            setIsEditOpen(false);
+            setSelectedCategory(null);
+          }}
           onSave={handleEdit}
         />
       )}
@@ -182,11 +184,18 @@ export const CategoriasPanel = () => {
   );
 };
 
-// Modal para agregar/editar categoría
-const CategoriaModal = ({ category, onClose, onSave }: { category?: Category, onClose: () => void, onSave: (cat: Partial<Category>) => void }) => {
+// Modal para agregar/editar categoría sin imagen
+const CategoriaModal = ({
+  category,
+  onClose,
+  onSave
+}: {
+  category?: Category;
+  onClose: () => void;
+  onSave: (cat: CategoryInput) => void;
+}) => {
   const [name, setName] = useState(category?.name || '');
   const [description, setDescription] = useState(category?.description || '');
-  const [image, setImage] = useState(category?.image || '');
 
   const isValid = name.trim() !== '';
 
@@ -203,18 +212,16 @@ const CategoriaModal = ({ category, onClose, onSave }: { category?: Category, on
             <label className="block text-sm font-medium mb-1">Descripción</label>
             <Input value={description} onChange={e => setDescription(e.target.value)} />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Imagen (URL, opcional)</label>
-            <Input value={image} onChange={e => setImage(e.target.value)} placeholder="https://..." />
-            <img src={image || PLACEHOLDER} alt="preview" className="w-24 h-24 object-cover rounded mt-2" />
-          </div>
         </div>
         <div className="flex justify-end space-x-2 mt-6">
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button
             variant="default"
             disabled={!isValid}
-            onClick={() => { onSave({ name, description, image }); onClose(); }}
+            onClick={() => {
+              onSave({ name, description });
+              onClose();
+            }}
           >
             Guardar
           </Button>
@@ -222,4 +229,4 @@ const CategoriaModal = ({ category, onClose, onSave }: { category?: Category, on
       </div>
     </div>
   );
-}; 
+};

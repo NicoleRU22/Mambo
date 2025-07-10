@@ -5,6 +5,8 @@ import { OrdersTable } from "@/components/admin/OrdersTable";
 import { AdminBlog } from "@/components/admin/AdminBlog";
 import AdminContact from "@/components/admin/AdminContact";
 import { UsuariosPanel } from "@/components/admin/UsuariosPanel";
+import { CategoriasPanel } from "@/components/admin/CategoriasPanel";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -386,6 +388,7 @@ const AdminDashboard = () => {
         {activeSection === "Perfil" && <AdminProfilePanel />}
         {activeSection === "Configuración" && <AdminSettingsPanel />}
         {activeSection === "Quejas y Sugerencias" && <AdminContact />}
+{activeSection === "Categorías" && <CategoriasPanel />}
 
       </div>
     </div>

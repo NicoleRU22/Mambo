@@ -2,7 +2,7 @@ import React from 'react';
 import {
   LayoutDashboard,
   Package,
-  FolderKanban, // Nuevo ícono para Categorías
+  FolderKanban,
   ShoppingCart,
   Users,
   ShieldCheck,

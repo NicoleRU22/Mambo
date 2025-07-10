@@ -7,7 +7,7 @@ import { ShoppingCart, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
 import { cartService } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { addToLocalCart, getLocalCart } from "@/utils/cartLocal";
+import { addToLocalCart } from "@/utils/cartLocal";
 
 interface Product {
   id: number;
@@ -19,7 +19,8 @@ interface Product {
   rating: number;
   reviews_count: number;
   sizes: string[];
-  pet_type: string;
+  pet_type?: string;
+  petType?: string; // 👈 incluimos ambas para asegurar compatibilidad
   stock: number;
 }
 
@@ -27,7 +28,7 @@ const ProductDetail = () => {
   const { state } = useLocation();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [product, setProduct] = useState<Product | null>(state?.product || null);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [showGuide, setShowGuide] = useState(false);
@@ -35,6 +36,8 @@ const ProductDetail = () => {
   useEffect(() => {
     if (!state?.product) {
       console.warn("Producto no recibido, accediste directamente a /product/:id sin pasar datos.");
+    } else {
+      console.log("Producto recibido:", state.product);
     }
   }, [state]);
 
@@ -44,7 +47,7 @@ const ProductDetail = () => {
         icon: "warning",
         title: "Selecciona una talla",
         text: "Debes elegir una talla antes de agregar el producto al carrito.",
-        confirmButtonColor: "#8b5cf6", 
+        confirmButtonColor: "#8b5cf6",
         confirmButtonText: "Entendido",
       });
       return;
@@ -52,22 +55,20 @@ const ProductDetail = () => {
 
     try {
       if (!isAuthenticated) {
-        // Usuario no autenticado - usar carrito local
         addToLocalCart(product.id, 1, selectedSize || undefined);
         Swal.fire({
           icon: "success",
           title: "Agregado al carrito local",
           text: `Producto ${product?.name}${selectedSize ? ` (Talla: ${selectedSize})` : ""} agregado correctamente.`,
-          confirmButtonColor: "#8b5cf6", 
+          confirmButtonColor: "#8b5cf6",
         });
       } else {
-        // Usuario autenticado - usar carrito del servidor
         await cartService.addToCart(product.id, 1, selectedSize || undefined);
         Swal.fire({
           icon: "success",
           title: "Agregado al carrito",
           text: `Producto ${product?.name}${selectedSize ? ` (Talla: ${selectedSize})` : ""} agregado correctamente.`,
-          confirmButtonColor: "#8b5cf6", 
+          confirmButtonColor: "#8b5cf6",
         });
       }
     } catch (error) {
@@ -76,7 +77,7 @@ const ProductDetail = () => {
         icon: "error",
         title: "Error",
         text: "No se pudo agregar el producto al carrito. Inténtalo de nuevo.",
-        confirmButtonColor: "#8b5cf6", 
+        confirmButtonColor: "#8b5cf6",
       });
     }
   };
@@ -84,6 +85,30 @@ const ProductDetail = () => {
   if (!product) {
     return <p className="text-center mt-10">Producto no encontrado. Vuelve al catálogo.</p>;
   }
+
+  const translatePetType = (type?: string): string => {
+  switch (type?.toLowerCase()) {
+    case "dog":
+      return "Perro";
+    case "cat":
+      return "Gato";
+    case "bird":
+      return "Ave";
+    case "fish":
+      return "Pez";
+    case "rabbit":
+      return "Conejo";
+    case "hamster":
+      return "Hámster";
+    case "turtle":
+      return "Tortuga";
+    case "other":
+      return "Otro";
+    default:
+      return "No especificado";
+  }
+};
+
 
   return (
     <>
@@ -136,7 +161,10 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <p className="mb-2 text-sm text-gray-600">Tipo de mascota: {product.pet_type}</p>
+            <p className="mb-2 text-sm text-gray-600">
+  Tipo de mascota: {translatePetType(product.pet_type || product.petType)}
+</p>
+
             <p className="mb-4 text-sm text-gray-600">Stock disponible: {product.stock}</p>
 
             <div className="flex space-x-4">

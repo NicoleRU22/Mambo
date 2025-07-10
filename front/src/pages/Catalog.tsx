@@ -263,56 +263,68 @@ const Catalog = () => {
 
         {/* Filtros adicionales */}
         {showFilters && (
-          <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <Select
-                value={selectedCategory}
-                onValueChange={setSelectedCategory}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.name}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+  <div className="mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <SelectTrigger>
+          <SelectValue placeholder="Categoría" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todas las categorías</SelectItem>
+          {categories.map((category) => (
+            <SelectItem key={category.id} value={category.name}>
+              {category.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-              <Select value={selectedSize} onValueChange={setSelectedSize}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Talla" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las tallas</SelectItem>
-                  <SelectItem value="xs">XS</SelectItem>
-                  <SelectItem value="s">S</SelectItem>
-                  <SelectItem value="m">M</SelectItem>
-                  <SelectItem value="l">L</SelectItem>
-                  <SelectItem value="xl">XL</SelectItem>
-                </SelectContent>
-              </Select>
+      <Select value={selectedSize} onValueChange={setSelectedSize}>
+        <SelectTrigger>
+          <SelectValue placeholder="Talla" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todas las tallas</SelectItem>
+          <SelectItem value="xs">XS</SelectItem>
+          <SelectItem value="s">S</SelectItem>
+          <SelectItem value="m">M</SelectItem>
+          <SelectItem value="l">L</SelectItem>
+          <SelectItem value="xl">XL</SelectItem>
+        </SelectContent>
+      </Select>
 
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Ordenar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Nombre A-Z</SelectItem>
-                  <SelectItem value="price-low">
-                    Precio: Menor a Mayor
-                  </SelectItem>
-                  <SelectItem value="price-high">
-                    Precio: Mayor a Menor
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
+      <Select value={sortBy} onValueChange={setSortBy}>
+        <SelectTrigger>
+          <SelectValue placeholder="Ordenar" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="name">Nombre A-Z</SelectItem>
+          <SelectItem value="price-low">Precio: Menor a Mayor</SelectItem>
+          <SelectItem value="price-high">Precio: Mayor a Menor</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+
+    {/* Botón Eliminar filtros */}
+    <div className="mt-4 text-right">
+      <Button
+        variant="ghost"
+        className="text-red-600 hover:text-red-800 text-sm"
+        onClick={() => {
+          setSearchTerm("");
+          setSelectedCategory("all");
+          setSelectedSize("all");
+          setSortBy("name");
+          setVisibleCount(8);
+        }}
+      >
+        Eliminar filtros
+      </Button>
+    </div>
+  </div>
+)}
+
+
 
         {/* Contador */}
         <div className="flex justify-between items-center mb-6">

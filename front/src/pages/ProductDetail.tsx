@@ -199,10 +199,15 @@ const ProductDetail = () => {
             </button>
             <h2 className="text-xl font-semibold mb-4">Guía de Tallas</h2>
             <img
-              src="/guia-tallas.png"
-              alt="Guía de Tallas"
-              className="w-full max-h-[400px] object-contain"
-            />
+  src={
+    (product.pet_type || product.petType)?.toLowerCase() === "cat"
+      ? "/medidas_gatos.webp"
+      : "/guia-tallas.png"
+  }
+  alt="Guía de Tallas"
+  className="w-full max-h-[400px] object-contain"
+/>
+
           </div>
         </div>
       )}

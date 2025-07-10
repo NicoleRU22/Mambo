@@ -1,18 +1,20 @@
 import React from 'react';
-import { MessageSquare, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   Package,
+  FolderKanban, // Nuevo ícono para Categorías
   ShoppingCart,
   Users,
-  BarChart3,
-  Settings,
-  FileText,
-  UserCircle,
   ShieldCheck,
+  BarChart3,
+  FileText,
+  MessageSquare,
+  Settings,
+  UserCircle,
+  LogOut
 } from 'lucide-react';
-import Swal from 'sweetalert2'; // Importamos SweetAlert2
+import { Button } from '@/components/ui/button';
+import Swal from 'sweetalert2';
 
 interface SidebarProps {
   activeSection: string;
@@ -23,7 +25,7 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard' },
     { icon: Package, label: 'Productos' },
-    { icon: Package, label: 'Categorías' },
+    { icon: FolderKanban, label: 'Categorías' }, // diferente de Productos
     { icon: ShoppingCart, label: 'Pedidos' },
     { icon: Users, label: 'Usuarios' },
     { icon: ShieldCheck, label: 'Validaciones' },
@@ -44,57 +46,58 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
       cancelButtonText: 'No, mantenerme aquí',
     }).then((result) => {
       if (result.isConfirmed) {
-        // Redirige a la página principal después de cerrar sesión
         window.location.href = '/';
       }
     });
   };
 
   return (
-    <div className="relative w-16 sm:w-64 bg-white shadow-lg border-r flex flex-col h-screen">
-      <div className="p-2 sm:p-6 border-b">
-        <div className="flex items-center space-x-2">
-          <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary-600">
-            <img
-              src="/logo.jpeg"
-              alt="Logo Mambo Petshop"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="sm:inline hidden">
-            <h2 className="text-xl font-bold text-gray-900">Mambo</h2>
-            <p className="text-sm text-gray-500">Admin Panel</p>
-          </div>
+    <div className="w-20 sm:w-64 h-screen bg-white shadow-lg border-r flex flex-col">
+      {/* Header con logo */}
+      <div className="p-4 border-b flex items-center space-x-3">
+        <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary-600">
+          <img
+            src="/logo.jpeg"
+            alt="Logo Mambo"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="hidden sm:block">
+          <h2 className="text-lg font-bold">Mambo</h2>
+          <p className="text-sm text-gray-500">Admin Panel</p>
         </div>
       </div>
 
-      <nav className="p-2 sm:p-4 space-y-2">
+      {/* Menú */}
+      <div className="flex-1 p-2 space-y-1">
         {menuItems.map((item, index) => (
           <Button
             key={index}
             onClick={() => setActiveSection(item.label)}
             variant={item.label === activeSection ? 'default' : 'ghost'}
-            className={`w-12 sm:w-full justify-start flex sm:items-center items-center space-x-2 ${
+            className={`w-full flex items-center justify-start space-x-2 ${
               item.label === activeSection
                 ? 'bg-primary-600 text-white hover:bg-primary-700'
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
-            <item.icon className="h-6 w-6" />
-            <span className="sm:inline hidden">{item.label}</span> {/* Texto solo visible en pantallas grandes */}
+            <item.icon className="h-5 w-5" />
+            <span className="hidden sm:inline">{item.label}</span>
           </Button>
         ))}
+      </div>
 
-        {/* Botón "Cerrar sesión" con color rojo al hacer hover */}
+      {/* Botón de Cerrar Sesión anclado abajo */}
+      <div className="p-4 mt-auto">
         <Button
-          onClick={handleLogout} // Llama a la función de cierre de sesión
+          onClick={handleLogout}
           variant="ghost"
-          className={`w-12 sm:w-full justify-start flex sm:items-center items-center space-x-2 text-gray-700 hover:bg-red-500 hover:text-white`}
+          className="w-full flex items-center justify-start space-x-2 text-gray-700 hover:bg-red-500 hover:text-white"
         >
-          <LogOut className="h-6 w-6" />
-          <span className="sm:inline hidden">Cerrar Sesión</span>
+          <LogOut className="h-5 w-5" />
+          <span className="hidden sm:inline">Cerrar Sesión</span>
         </Button>
-      </nav>
+      </div>
     </div>
   );
 };

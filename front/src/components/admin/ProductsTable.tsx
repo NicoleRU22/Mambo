@@ -1,39 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
+  Card, CardContent, CardHeader, CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import {
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  MoreHorizontal
+  Search, Plus, Edit, Trash2, Eye, MoreHorizontal
 } from 'lucide-react';
-import Swal from "sweetalert2";
+import Swal from 'sweetalert2';
 
 import { EditProductModal } from './EditProductModal';
 import { AddProductModal } from './AddProductModal';
+import { ViewProductModal } from './ViewProductModal'; // NUEVO
 import { productService, categoryService } from '@/services/api';
 
 interface Product {
@@ -65,6 +50,7 @@ interface Category {
 export const ProductsTable = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false); // NUEVO
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filterName, setFilterName] = useState('');
@@ -75,7 +61,6 @@ export const ProductsTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // Cargar productos y categorías
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -84,7 +69,6 @@ export const ProductsTable = () => {
           productService.getAllAdmin(),
           categoryService.getAll(),
         ]);
-
         setProducts(productsData || []);
         setCategories(categoriesData || []);
       } catch (err) {
@@ -94,7 +78,6 @@ export const ProductsTable = () => {
         setLoading(false);
       }
     };
-
     loadData();
   }, []);
 
@@ -117,9 +100,8 @@ export const ProductsTable = () => {
         categoryId: updatedProduct.categoryId,
       });
 
-      // Actualizar la lista local
-      setProducts(prevProducts =>
-        prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+      setProducts(prev =>
+        prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
       );
       setIsEditModalOpen(false);
     } catch (error) {
@@ -130,22 +112,22 @@ export const ProductsTable = () => {
 
   const handleDeleteProduct = async (productId: number) => {
     const result = await Swal.fire({
-      title: "¿Estás seguro?",
-      text: "Esta acción no se puede deshacer.",
-      icon: "warning",
+      title: '¿Estás seguro?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar"
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
     });
     if (!result.isConfirmed) return;
 
     try {
       await productService.delete(productId);
-      setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
-      await Swal.fire("Eliminado", "Producto eliminado correctamente", "success");
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      await Swal.fire('Eliminado', 'Producto eliminado correctamente', 'success');
     } catch (error) {
       console.error('Error deleting product:', error);
-      await Swal.fire("Error", "No se pudo eliminar el producto. Intenta de nuevo.", "error");
+      await Swal.fire('Error', 'No se pudo eliminar el producto.', 'error');
     }
   };
 
@@ -163,7 +145,7 @@ export const ProductsTable = () => {
         categoryId: newProduct.categoryId,
       });
 
-      setProducts(prevProducts => [...prevProducts, createdProduct]);
+      setProducts(prev => [...prev, createdProduct]);
       setIsAddModalOpen(false);
     } catch (error) {
       console.error('Error creating product:', error);
@@ -186,11 +168,10 @@ export const ProductsTable = () => {
   const filteredProducts = products.filter(product => {
     const nameMatch = product.name.toLowerCase().includes(filterName.toLowerCase());
     const categoryMatch = filterCategory === '' || getCategoryName(product.categoryId) === filterCategory;
-    const statusMatch = filterStatus === '' || 
+    const statusMatch = filterStatus === '' ||
       (filterStatus === 'Activo' && product.stock > 10) ||
       (filterStatus === 'Stock Bajo' && product.stock <= 10 && product.stock > 0) ||
       (filterStatus === 'Sin Stock' && product.stock === 0);
-
     return nameMatch && categoryMatch && statusMatch;
   });
 
@@ -203,11 +184,7 @@ export const ProductsTable = () => {
   if (loading) {
     return (
       <Card>
-        <CardContent className="p-8">
-          <div className="text-center">
-            <p>Cargando productos...</p>
-          </div>
-        </CardContent>
+        <CardContent className="p-8 text-center">Cargando productos...</CardContent>
       </Card>
     );
   }
@@ -215,13 +192,11 @@ export const ProductsTable = () => {
   if (error) {
     return (
       <Card>
-        <CardContent className="p-8">
-          <div className="text-center">
-            <p className="text-red-600">{error}</p>
-            <Button onClick={() => window.location.reload()} className="mt-4">
-              Reintentar
-            </Button>
-          </div>
+        <CardContent className="p-8 text-center">
+          <p className="text-red-600">{error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Reintentar
+          </Button>
         </CardContent>
       </Card>
     );
@@ -233,18 +208,15 @@ export const ProductsTable = () => {
         <CardHeader>
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <CardTitle>Gestión de Productos</CardTitle>
-            <Button
-              className="bg-primary-600 hover:bg-primary-700"
-              onClick={() => setIsAddModalOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
+            <Button onClick={() => setIsAddModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
               Agregar Producto
             </Button>
           </div>
 
-          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mt-4">
+          <div className="flex flex-col md:flex-row gap-2 mt-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Buscar productos..."
                 className="pl-10"
@@ -265,10 +237,8 @@ export const ProductsTable = () => {
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
                 <option value="">Todas las categorías</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.name}>
-                    {category.name}
-                  </option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
               <select
@@ -278,12 +248,10 @@ export const ProductsTable = () => {
               >
                 <option value="">Todos los estados</option>
                 <option value="Activo">Activo</option>
-                <option value="Sin Stock">Sin Stock</option>
                 <option value="Stock Bajo">Stock Bajo</option>
+                <option value="Sin Stock">Sin Stock</option>
               </select>
-              <Button variant="ghost" onClick={clearFilters}>
-                Limpiar filtros
-              </Button>
+              <Button variant="ghost" onClick={clearFilters}>Limpiar filtros</Button>
             </div>
           )}
         </CardHeader>
@@ -301,14 +269,14 @@ export const ProductsTable = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
+              {filteredProducts.map(product => (
                 <TableRow key={product.id}>
                   <TableCell>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center gap-3">
                       <img
-                        src={product.images[0] || "/placeholder.svg"}
+                        src={product.images[0] || '/placeholder.svg'}
                         alt={product.name}
-                        className="w-12 h-12 rounded-lg object-cover"
+                        className="w-12 h-12 rounded object-cover"
                       />
                       <div>
                         <p className="font-medium">{product.name}</p>
@@ -317,10 +285,10 @@ export const ProductsTable = () => {
                     </div>
                   </TableCell>
                   <TableCell>{getCategoryName(product.categoryId)}</TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell>
                     S/.{product.price}
                     {product.originalPrice && (
-                      <span className="text-sm text-gray-400 line-through ml-2">
+                      <span className="ml-2 line-through text-sm text-gray-400">
                         S/.{product.originalPrice}
                       </span>
                     )}
@@ -335,19 +303,22 @@ export const ProductsTable = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => console.log('Ver', product.id)}>
-                          <Eye className="h-4 w-4 mr-2" />
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedProduct(product);
+                          setShowViewModal(true);
+                        }}>
+                          <Eye className="mr-2 h-4 w-4" />
                           Ver detalles
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEditClick(product)}>
-                          <Edit className="h-4 w-4 mr-2" />
+                          <Edit className="mr-2 h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteProduct(product.id)}
                           className="text-red-600"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="mr-2 h-4 w-4" />
                           Eliminar
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -359,8 +330,8 @@ export const ProductsTable = () => {
           </Table>
 
           {filteredProducts.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No se encontraron productos</p>
+            <div className="text-center py-8 text-gray-500">
+              No se encontraron productos
             </div>
           )}
         </CardContent>
@@ -380,7 +351,12 @@ export const ProductsTable = () => {
         onAdd={handleAddProduct}
         categories={categories}
       />
+
+      <ViewProductModal
+        open={showViewModal}
+        onClose={() => setShowViewModal(false)}
+        product={selectedProduct}
+      />
     </>
   );
 };
-

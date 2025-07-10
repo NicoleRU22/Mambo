@@ -47,7 +47,7 @@ const Catalog = () => {
   const [sortBy, setSortBy] = useState("name");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [visibleCount, setVisibleCount] = useState(8);
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +136,7 @@ const Catalog = () => {
   const visibleProducts = sortedProducts.slice(0, visibleCount);
 
   const handleLoadMore = () => {
-    setVisibleCount((prev) => Math.min(prev + 5, sortedProducts.length));
+    setVisibleCount((prev) => Math.min(prev + 8, sortedProducts.length));
   };
 
   const handleAddToCart = async (

@@ -25,7 +25,7 @@ interface Product {
   petType: string;
   images: string[];
   sizes: string[];
-  colors?: string[]; // NUEVO
+  colors?: string[];
   categoryId?: number;
   category?: {
     id: number;

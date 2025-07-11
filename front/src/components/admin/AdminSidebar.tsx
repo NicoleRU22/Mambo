@@ -5,7 +5,6 @@ import {
   FolderKanban,
   ShoppingCart,
   Users,
-  ShieldCheck,
   BarChart3,
   FileText,
   MessageSquare,
@@ -25,10 +24,9 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard' },
     { icon: Package, label: 'Productos' },
-    { icon: FolderKanban, label: 'Categorías' }, // diferente de Productos
+    { icon: FolderKanban, label: 'Categorías' },
     { icon: ShoppingCart, label: 'Pedidos' },
     { icon: Users, label: 'Usuarios' },
-    { icon: ShieldCheck, label: 'Validaciones' },
     { icon: BarChart3, label: 'Reportes' },
     { icon: FileText, label: 'Blog' },
     { icon: MessageSquare, label: 'Quejas y Sugerencias' },

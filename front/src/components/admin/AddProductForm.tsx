@@ -71,6 +71,7 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
   const [imageUrl, setImageUrl] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
   const [useUrlInput, setUseUrlInput] = useState(false);
+  const [isClothingCategory, setIsClothingCategory] = useState(false);
 
   useEffect(() => {
     if (imageFile) {
@@ -81,6 +82,26 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
       setPreview(imageUrl);
     }
   }, [imageFile, imageUrl]);
+
+  // Detecta si la categoría seleccionada es ropa o ropa de temporada
+  useEffect(() => {
+    const selected = categories.find(
+      (cat) => cat.id.toString() === formData.categoryId
+    );
+    const isClothing = selected
+      ? ["ropa", "ropa de temporada"].includes(selected.name.toLowerCase())
+      : false;
+
+    setIsClothingCategory(isClothing);
+
+    if (!isClothing) {
+      setFormData((prev) => ({
+        ...prev,
+        sizes: [],
+        colors: [],
+      }));
+    }
+  }, [formData.categoryId, categories]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -161,8 +182,8 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
       categoryId: formData.categoryId
         ? parseInt(formData.categoryId)
         : undefined,
-      sizes: formData.sizes,
-      colors: formData.colors,
+      sizes: isClothingCategory ? formData.sizes : [],
+      colors: isClothingCategory ? formData.colors : [],
       images,
       isActive: formData.isActive,
     };
@@ -275,33 +296,42 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
               </Select>
             </div>
 
-            <div>
-              <Label>Tallas Disponibles</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                {["XS", "S", "M", "L", "XL"].map((size) => (
-                  <label key={size} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={size}
-                      checked={formData.sizes.includes(size)}
-                      onCheckedChange={() => handleSizeChange(size)}
-                    />
-                    <span>{size}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="colors">Colores disponibles</Label>
-              <Input
-                id="colors"
-                type="text"
-                placeholder="Ej. rojo, azul, negro"
-                onChange={handleColorChange}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Ingresa los colores separados por comas.
-              </p>
-            </div>
+            {isClothingCategory && (
+              <>
+                <div>
+                  <Label>Tallas Disponibles</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                    {["XS", "S", "M", "L", "XL"].map((size) => (
+                      <label
+                        key={size}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={size}
+                          checked={formData.sizes.includes(size)}
+                          onCheckedChange={() => handleSizeChange(size)}
+                        />
+                        <span>{size}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="colors">Colores disponibles</Label>
+                  <Input
+                    id="colors"
+                    type="text"
+                    placeholder="Ej. rojo, azul, negro"
+                    value={formData.colors.join(", ")}
+                    onChange={handleColorChange}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ingresa los colores separados por comas.
+                  </p>
+                </div>
+              </>
+            )}
 
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -339,7 +369,11 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
               </label>
             </div>
             {!useUrlInput ? (
-              <Input type="file" accept="image/*" onChange={handleFileChange} />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+              />
             ) : (
               <Input
                 type="text"

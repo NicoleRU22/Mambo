@@ -373,19 +373,27 @@ const Catalog = () => {
                   </span>
                 )}
                 <div className="absolute top-3 right-3 flex space-x-2">
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
-      navigate(`/product/${product.id}`, {
-        state: { product },
-      });
-    }}
-    className="p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-  >
-    <Eye className="h-4 w-4 text-gray-600 hover:text-blue-500" />
-  </button>
-</div>
-
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/product/${product.id}`, {
+                        state: { product },
+                      });
+                    }}
+                    className="p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Eye className="h-4 w-4 text-gray-600 hover:text-blue-500" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log("Producto marcado como favorito");
+                    }}
+                    className="p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+                  </button>
+                </div>
               </div>
 
               <CardContent className="p-4">

@@ -16,6 +16,7 @@ import { getLocalCart } from '@/utils/cartLocal';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const [cartItemCount, setCartItemCount] = useState(0);
@@ -35,7 +36,6 @@ const Header = () => {
       }
     };
     loadCartCount();
-    // Escuchar cambios en localStorage
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'guest_cart') loadCartCount();
     };
@@ -48,55 +48,48 @@ const Header = () => {
     navigate('/');
   };
 
+  const handleSearch = () => {
+    if (searchTerm.trim() !== '') {
+      navigate(`/catalog?search=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
-      {/* Top bar */}
       <div className="bg-primary-600 text-white py-2">
         <div className="container mx-auto px-4 text-center text-sm">
           ¡Envío gratis en compras superiores a S/.50! 🐾
         </div>
       </div>
 
-      {/* Main header */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-            <div 
-              className="flex items-center cursor-pointer" 
-              onClick={() => navigate('/')}
-            >
-              <div className="w-18 h-14 ">
-                <img
-                  src="/logo2.jpeg"
-                  alt="Logo Mambo Petshop"
-                  className="w-full h-full object-cover"
-                />
-              </div>
+          <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
+            <div className="w-18 h-14">
+              <img src="/logo2.jpeg" alt="Logo Mambo Petshop" className="w-full h-full object-cover" />
             </div>
+          </div>
 
-          {/* Search bar - Hidden on mobile */}
+          {/* Desktop Search */}
           <div className="hidden md:flex flex-1 max-w-lg mx-8">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search onClick={handleSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 cursor-pointer" />
               <Input
                 type="text"
                 placeholder="Buscar ropa para tu mascota..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-10 pr-4 py-2 w-full border-gray-300 focus:border-primary-500 focus:ring-primary-500"
               />
             </div>
           </div>
 
-          {/* Right section */}
           <div className="flex items-center space-x-4">
-            {/* Account */}
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="hidden sm:flex items-center space-x-1"
-                  >
+                  <Button variant="ghost" size="sm" className="hidden sm:flex items-center space-x-1">
                     <User className="h-5 w-5" />
                     <span className="hidden lg:inline">{user?.name}</span>
                   </Button>
@@ -132,18 +125,12 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="hidden sm:flex items-center space-x-1"
-                onClick={() => navigate('/login')}
-              >
+              <Button variant="ghost" size="sm" className="hidden sm:flex items-center space-x-1" onClick={() => navigate('/login')}>
                 <User className="h-5 w-5" />
                 <span className="hidden lg:inline">Mi Cuenta</span>
               </Button>
             )}
 
-            {/* Cart */}
             <Button variant="ghost" size="sm" className="relative" onClick={() => navigate('/cart')}>
               <ShoppingCart className="h-5 w-5" />
               <span className="absolute -top-2 -right-2 bg-secondary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -151,35 +138,32 @@ const Header = () => {
               </span>
             </Button>
 
-            {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
+            <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <div className="w-6 h-6 flex flex-col justify-center items-center">
-                <span className={`bg-current block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${isMenuOpen ? 'rotate-45 translate-y-1' : '-translate-y-0.5'}`}></span>
-                <span className={`bg-current block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm my-0.5 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
-                <span className={`bg-current block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${isMenuOpen ? '-rotate-45 -translate-y-1' : 'translate-y-0.5'}`}></span>
+                <span className={`bg-current block h-0.5 w-6 rounded-sm transition-transform duration-300 ${isMenuOpen ? 'rotate-45 translate-y-1' : '-translate-y-0.5'}`}></span>
+                <span className={`bg-current block h-0.5 w-6 rounded-sm my-0.5 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+                <span className={`bg-current block h-0.5 w-6 rounded-sm transition-transform duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-1' : 'translate-y-0.5'}`}></span>
               </div>
             </Button>
           </div>
         </div>
 
-        {/* Mobile search */}
+        {/* Mobile Search */}
         <div className="md:hidden mt-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search onClick={handleSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 cursor-pointer" />
             <Input
               type="text"
               placeholder="Buscar ropa..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="pl-10 pr-4 py-2 w-full"
             />
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex mt-4 space-x-8">
           <a href="#" onClick={() => navigate('/')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 flex items-center space-x-1">
             <Home className="h-4 w-4" />
@@ -189,16 +173,13 @@ const Header = () => {
           <a href="#" onClick={() => navigate('/ofertas')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200">Ofertas</a>
           <a href="#" onClick={() => navigate('/aboutus')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200">Nosotros</a>
           <a href="#" onClick={() => navigate('/contact')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200">Contáctanos</a>
-          <a href="#" 
-            onClick={() => navigate('/blog')} 
-            className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 flex items-center space-x-1"
-          >
+          <a href="#" onClick={() => navigate('/blog')} className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 flex items-center space-x-1">
             <Book className="h-4 w-4" />
             <span>Blog</span>
           </a>
         </nav>
 
-        {/* Mobile navigation */}
+        {/* Mobile Navigation */}
         {isMenuOpen && (
           <nav className="md:hidden mt-4 py-4 border-t border-gray-200 animate-fade-in">
             <div className="flex flex-col space-y-3">

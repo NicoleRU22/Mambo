@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa';
@@ -6,6 +6,9 @@ import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+
+  const isEmailValid = email.trim() !== '' && email.includes('@');
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -21,12 +24,15 @@ const Footer = () => {
               <Input
                 type="email"
                 placeholder="Tu email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-white text-gray-900 border-0 flex-1"
               />
               <Button 
                 variant="secondary" 
-                className="bg-secondary-500 hover:bg-secondary-600 text-white px-6"
+                className="bg-secondary-500 hover:bg-secondary-600 text-white px-6 disabled:opacity-50"
                 onClick={() => navigate('/newsletter')}
+                disabled={!isEmailValid}
               >
                 Suscribirse
               </Button>
@@ -88,17 +94,6 @@ const Footer = () => {
                 <li><button onClick={() => navigate('/ofertas')} className="text-gray-400 hover:text-white transition-colors">Ofertas</button></li>
                 <li><button onClick={() => navigate('/blog')} className="text-gray-400 hover:text-white transition-colors">Blog</button></li>
                 <li><button onClick={() => navigate('/contact')} className="text-gray-400 hover:text-white transition-colors">Contacto</button></li>
-              </ul>
-            </div>
-
-            {/* Categories */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Categorías</h4>
-              <ul className="space-y-2">
-                <li><button onClick={() => navigate('/catalog?category=ropas')} className="text-gray-400 hover:text-white transition-colors">Ropas</button></li>
-                <li><button onClick={() => navigate('/catalog?category=alimento')} className="text-gray-400 hover:text-white transition-colors">Alimento</button></li>
-                <li><button onClick={() => navigate('/catalog?category=juguetes')} className="text-gray-400 hover:text-white transition-colors">Juguetes</button></li>
-                <li><button onClick={() => navigate('/catalog?category=accesorios')} className="text-gray-400 hover:text-white transition-colors">Accesorios</button></li>
               </ul>
             </div>
 

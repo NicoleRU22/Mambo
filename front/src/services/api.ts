@@ -106,7 +106,9 @@ export const productService = {
     petType: string;
     images?: string[];
     sizes?: string[];
+    colors?: string[];
     categoryId?: number;
+    isActive?: boolean;
   }) => {
     return apiRequest('/products', {
       method: 'POST',
@@ -124,6 +126,8 @@ export const productService = {
     images?: string[];
     sizes?: string[];
     categoryId?: number;
+    colors?: string[];
+    isActive?: boolean;
   }) => {
     return apiRequest(`/products/${id}`, {
       method: 'PUT',
@@ -156,10 +160,10 @@ export const cartService = {
     return apiRequest('/cart');
   },
 
-  addToCart: async (productId: number, quantity: number = 1, size?: string) => {
+  addToCart: async (productId: number, quantity: number = 1, size?: string, color?: string) => {
     return apiRequest('/cart', {
       method: 'POST',
-      body: JSON.stringify({ product_id: productId, quantity, size }),
+      body: JSON.stringify({ product_id: productId, quantity, size, color }),
     });
   },
 

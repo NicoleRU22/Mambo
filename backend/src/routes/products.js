@@ -65,6 +65,7 @@ router.get("/:id", async (req, res) => {
 // Crear un nuevo producto
 router.post("/", async (req, res) => {
   try {
+    console.log("Colores recibidos:", req.body.colors); // ✅ aquí
     const {
       name,
       description,
@@ -74,6 +75,7 @@ router.post("/", async (req, res) => {
       petType,
       images,
       sizes,
+      colors,
       categoryId,
     } = req.body;
 
@@ -106,6 +108,7 @@ router.put("/:id", async (req, res) => {
   }
 
   try {
+    console.log("Colores recibidos:", req.body.colors); // ✅ aquí también
     const {
       name,
       description,
@@ -115,6 +118,7 @@ router.put("/:id", async (req, res) => {
       petType,
       images,
       sizes,
+      colors, 
       categoryId,
       isActive,
     } = req.body;
@@ -130,6 +134,7 @@ router.put("/:id", async (req, res) => {
         petType: petType.toUpperCase(),
         images,
         sizes,
+        colors: req.body.colors || [], // 👈 ✅ Aquí agregamos el campo
         categoryId: categoryId ? parseInt(categoryId) : null,
         isActive,
       },
@@ -152,7 +157,7 @@ router.delete("/:id", async (req, res) => {
   try {
     // Eliminar items de carrito relacionados
     await prisma.cartItem.deleteMany({
-      where: { productId: id }
+      where: { productId: id },
     });
 
     // Ahora sí eliminar el producto

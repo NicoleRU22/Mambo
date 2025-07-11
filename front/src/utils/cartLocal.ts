@@ -3,6 +3,7 @@ export interface CartItemLocal {
   productId: number;
   quantity: number;
   size?: string;
+  color?: string;
 }
 
 // Clave usada en localStorage
@@ -22,27 +23,32 @@ export function getLocalCart(): CartItemLocal[] {
 export function addToLocalCart(
   productId: number,
   quantity: number = 1,
-  size?: string
+  size?: string,
+  color?: string // ✅ AGREGADO
 ): void {
   const cart = getLocalCart();
 
-  // Buscar si el item ya existe con mismo tamaño
+  // Buscar si el item ya existe con mismo tamaño y color
   const index = cart.findIndex(
-    (item) => item.productId === productId && item.size === size
+    (item) =>
+      item.productId === productId &&
+      item.size === size &&
+      item.color === color // ✅ NUEVA CONDICIÓN
   );
 
   if (index !== -1) {
     cart[index].quantity += quantity;
   } else {
-    cart.push({ productId, quantity, size });
+    cart.push({ productId, quantity, size, color }); // ✅ AGREGADO color
   }
 
   localStorage.setItem(LOCAL_CART_KEY, JSON.stringify(cart));
 }
 
-export function removeFromLocalCart(productId: number, size?: string): void {
+
+export function removeFromLocalCart(productId: number, size?: string, color?: string): void {
   const cart = getLocalCart().filter(
-    (item) => !(item.productId === productId && item.size === size)
+    (item) => !(item.productId === productId && item.size === size && item.color === color)
   );
   localStorage.setItem(LOCAL_CART_KEY, JSON.stringify(cart));
 }

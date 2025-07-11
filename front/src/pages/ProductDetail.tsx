@@ -18,6 +18,7 @@ interface Product {
   images: string[];
   rating: number;
   reviews_count: number;
+  colors: string[];
   sizes: string[];
   pet_type?: string;
   petType?: string; // 👈 incluimos ambas para asegurar compatibilidad
@@ -29,86 +30,120 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [product, setProduct] = useState<Product | null>(state?.product || null);
+  const [product, setProduct] = useState<Product | null>(
+    state?.product || null
+  );
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [showGuide, setShowGuide] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string>("");
 
   useEffect(() => {
     if (!state?.product) {
-      console.warn("Producto no recibido, accediste directamente a /product/:id sin pasar datos.");
+      console.warn(
+        "Producto no recibido, accediste directamente a /product/:id sin pasar datos."
+      );
     } else {
       console.log("Producto recibido:", state.product);
     }
   }, [state]);
 
-  const handleAddToCart = async () => {
-    if (product?.sizes.length && !selectedSize) {
-      Swal.fire({
-        icon: "warning",
-        title: "Selecciona una talla",
-        text: "Debes elegir una talla antes de agregar el producto al carrito.",
-        confirmButtonColor: "#8b5cf6",
-        confirmButtonText: "Entendido",
-      });
-      return;
-    }
-
-    try {
-      if (!isAuthenticated) {
-        addToLocalCart(product.id, 1, selectedSize || undefined);
-        Swal.fire({
-          icon: "success",
-          title: "Agregado al carrito local",
-          text: `Producto ${product?.name}${selectedSize ? ` (Talla: ${selectedSize})` : ""} agregado correctamente.`,
-          confirmButtonColor: "#8b5cf6",
-        });
-      } else {
-        await cartService.addToCart(product.id, 1, selectedSize || undefined);
-        Swal.fire({
-          icon: "success",
-          title: "Agregado al carrito",
-          text: `Producto ${product?.name}${selectedSize ? ` (Talla: ${selectedSize})` : ""} agregado correctamente.`,
-          confirmButtonColor: "#8b5cf6",
-        });
-      }
-    } catch (error) {
-      console.error("Error al agregar al carrito:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo agregar el producto al carrito. Inténtalo de nuevo.",
-        confirmButtonColor: "#8b5cf6",
-      });
-    }
-  };
-
-  if (!product) {
-    return <p className="text-center mt-10">Producto no encontrado. Vuelve al catálogo.</p>;
+ const handleAddToCart = async () => {
+  if (product?.sizes.length && !selectedSize) {
+    Swal.fire({
+      icon: "warning",
+      title: "Selecciona una talla",
+      text: "Debes elegir una talla antes de agregar el producto al carrito.",
+      confirmButtonColor: "#8b5cf6",
+    });
+    return;
   }
 
-  const translatePetType = (type?: string): string => {
-  switch (type?.toLowerCase()) {
-    case "dog":
-      return "Perro";
-    case "cat":
-      return "Gato";
-    case "bird":
-      return "Ave";
-    case "fish":
-      return "Pez";
-    case "rabbit":
-      return "Conejo";
-    case "hamster":
-      return "Hámster";
-    case "turtle":
-      return "Tortuga";
-    case "other":
-      return "Otro";
-    default:
-      return "No especificado";
+  if (product?.colors && product.colors.length > 0 && !selectedColor) {
+    Swal.fire({
+      icon: "warning",
+      title: "Selecciona un color",
+      text: "Debes elegir un color antes de agregar el producto al carrito.",
+      confirmButtonColor: "#8b5cf6",
+    });
+    return;
+  }
+
+  try {
+    if (!isAuthenticated) {
+      addToLocalCart(
+        product.id,
+        1,
+        selectedSize || undefined,
+        selectedColor || undefined
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Agregado al carrito local",
+        text: `Producto ${product?.name}${
+          selectedSize ? ` (Talla: ${selectedSize})` : ""
+        }${selectedColor ? ` (Color: ${selectedColor})` : ""} agregado correctamente.`,
+        confirmButtonColor: "#8b5cf6",
+      });
+    } else {
+      await cartService.addToCart(
+        product.id,
+        1,
+        selectedSize || undefined,
+        selectedColor || undefined
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Agregado al carrito",
+        text: `Producto ${product?.name}${
+          selectedSize ? ` (Talla: ${selectedSize})` : ""
+        }${selectedColor ? ` (Color: ${selectedColor})` : ""} agregado correctamente.`,
+        confirmButtonColor: "#8b5cf6",
+      });
+    }
+  } catch (error) {
+    console.error("Error al agregar al carrito:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo agregar el producto al carrito. Inténtalo de nuevo.",
+      confirmButtonColor: "#8b5cf6",
+    });
   }
 };
 
+
+  if (!product) {
+    return (
+      <p className="text-center mt-10">
+        Producto no encontrado. Vuelve al catálogo.
+      </p>
+    );
+  }
+
+  const translatePetType = (type?: string): string => {
+    switch (type?.toLowerCase()) {
+      case "dog":
+        return "Perro";
+      case "cat":
+        return "Gato";
+      case "bird":
+        return "Ave";
+      case "fish":
+        return "Pez";
+      case "rabbit":
+        return "Conejo";
+      case "hamster":
+        return "Hámster";
+      case "turtle":
+        return "Tortuga";
+      case "other":
+        return "Otro";
+      default:
+        return "No especificado";
+    }
+  };
 
   return (
     <>
@@ -125,7 +160,9 @@ const ProductDetail = () => {
             <p className="text-gray-500 mb-4">{product.description}</p>
 
             <div className="flex items-center space-x-2 mb-4">
-              <span className="text-xl font-semibold text-primary-600">S/. {product.price}</span>
+              <span className="text-xl font-semibold text-primary-600">
+                S/. {product.price}
+              </span>
               {product.original_price && (
                 <span className="line-through text-gray-400">
                   S/. {product.original_price}
@@ -136,7 +173,9 @@ const ProductDetail = () => {
             {/* Selección de talla */}
             {product.sizes.length > 0 && (
               <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">Tallas disponibles:</p>
+                <p className="text-sm text-gray-600 mb-2">
+                  Tallas disponibles:
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {product.sizes.map((size) => (
                     <button
@@ -160,12 +199,38 @@ const ProductDetail = () => {
                 </button>
               </div>
             )}
+            {/* Selección de color */}
+            {product.colors && product.colors.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  Colores disponibles:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`border rounded px-4 py-1 text-sm capitalize ${
+                        selectedColor === color
+                          ? "bg-primary-600 text-white"
+                          : "bg-white text-gray-700"
+                      } hover:bg-primary-100 border-primary-600`}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <p className="mb-2 text-sm text-gray-600">
-  Tipo de mascota: {translatePetType(product.pet_type || product.petType)}
-</p>
+              Tipo de mascota:{" "}
+              {translatePetType(product.pet_type || product.petType)}
+            </p>
 
-            <p className="mb-4 text-sm text-gray-600">Stock disponible: {product.stock}</p>
+            <p className="mb-4 text-sm text-gray-600">
+              Stock disponible: {product.stock}
+            </p>
 
             <div className="flex space-x-4">
               <Button variant="outline" onClick={() => navigate("/catalog")}>
@@ -199,15 +264,14 @@ const ProductDetail = () => {
             </button>
             <h2 className="text-xl font-semibold mb-4">Guía de Tallas</h2>
             <img
-  src={
-    (product.pet_type || product.petType)?.toLowerCase() === "cat"
-      ? "/medidas_gatos.webp"
-      : "/guia-tallas.png"
-  }
-  alt="Guía de Tallas"
-  className="w-full max-h-[400px] object-contain"
-/>
-
+              src={
+                (product.pet_type || product.petType)?.toLowerCase() === "cat"
+                  ? "/medidas_gatos.webp"
+                  : "/guia-tallas.png"
+              }
+              alt="Guía de Tallas"
+              className="w-full max-h-[400px] object-contain"
+            />
           </div>
         </div>
       )}

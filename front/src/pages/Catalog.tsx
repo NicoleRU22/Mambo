@@ -30,6 +30,7 @@ interface Product {
   images: string[];
   sizes: string[];
   pet_type: string;
+  colors?: string[];
   category_name?: string;
   stock: number;
 }
@@ -146,7 +147,9 @@ const Catalog = () => {
   ) => {
     if (!user) {
       addToLocalCart(productId, quantity, size);
-      setCartItemCount(getLocalCart().reduce((sum, item) => sum + item.quantity, 0));
+      setCartItemCount(
+        getLocalCart().reduce((sum, item) => sum + item.quantity, 0)
+      );
       return Swal.fire(
         "Agregado",
         "Producto añadido al carrito local",
@@ -162,10 +165,11 @@ const Catalog = () => {
     } catch (error: unknown) {
       console.error("Error al agregar al carrito:", error);
       let msg = "No se pudo agregar al carrito";
-      if (typeof error === 'object' && error !== null && 'message' in error) {
+      if (typeof error === "object" && error !== null && "message" in error) {
         const message = String((error as { message?: unknown }).message);
-        if (message.includes('Stock insuficiente')) msg = 'Stock insuficiente';
-        if (message.includes('Producto no encontrado')) msg = 'Producto no disponible';
+        if (message.includes("Stock insuficiente")) msg = "Stock insuficiente";
+        if (message.includes("Producto no encontrado"))
+          msg = "Producto no disponible";
       }
       Swal.fire("Error", msg, "error");
     } finally {
@@ -263,70 +267,75 @@ const Catalog = () => {
 
         {/* Filtros adicionales */}
         {showFilters && (
-  <>
-    <div className="mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger>
-            <SelectValue placeholder="Categoría" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas las categorías</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.name}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <>
+            <div className="mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <Select
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las categorías</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-        <Select value={selectedSize} onValueChange={setSelectedSize}>
-          <SelectTrigger>
-            <SelectValue placeholder="Talla" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas las tallas</SelectItem>
-            <SelectItem value="xs">XS</SelectItem>
-            <SelectItem value="s">S</SelectItem>
-            <SelectItem value="m">M</SelectItem>
-            <SelectItem value="l">L</SelectItem>
-            <SelectItem value="xl">XL</SelectItem>
-          </SelectContent>
-        </Select>
+                <Select value={selectedSize} onValueChange={setSelectedSize}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Talla" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las tallas</SelectItem>
+                    <SelectItem value="xs">XS</SelectItem>
+                    <SelectItem value="s">S</SelectItem>
+                    <SelectItem value="m">M</SelectItem>
+                    <SelectItem value="l">L</SelectItem>
+                    <SelectItem value="xl">XL</SelectItem>
+                  </SelectContent>
+                </Select>
 
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger>
-            <SelectValue placeholder="Ordenar" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="name">Nombre A-Z</SelectItem>
-            <SelectItem value="price-low">Precio: Menor a Mayor</SelectItem>
-            <SelectItem value="price-high">Precio: Mayor a Menor</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Ordenar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Nombre A-Z</SelectItem>
+                    <SelectItem value="price-low">
+                      Precio: Menor a Mayor
+                    </SelectItem>
+                    <SelectItem value="price-high">
+                      Precio: Mayor a Menor
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-    {/* Botón Eliminar filtros */}
-    <div className="mb-6 text-right">
-      <Button
-        variant="ghost"
-        className="text-red-600 hover:text-red-800 text-sm"
-        onClick={() => {
-          setSearchTerm("");
-          setSelectedCategory("all");
-          setSelectedSize("all");
-          setSortBy("name");
-          setVisibleCount(8);
-        }}
-      >
-        Eliminar filtros
-      </Button>
-    </div>
-  </>
-)}
-
-
+            {/* Botón Eliminar filtros */}
+            <div className="mb-6 text-right">
+              <Button
+                variant="ghost"
+                className="text-red-600 hover:text-red-800 text-sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("all");
+                  setSelectedSize("all");
+                  setSortBy("name");
+                  setVisibleCount(8);
+                }}
+              >
+                Eliminar filtros
+              </Button>
+            </div>
+          </>
+        )}
 
         {/* Contador */}
         <div className="flex justify-between items-center mb-6">
@@ -413,44 +422,75 @@ const Catalog = () => {
                     {product.sizes.length > 0 &&
                       `Tallas: ${product.sizes.join(", ")}`}
                   </div>
+                  {product.colors && product.colors.length > 0 && (
+                    <div className="flex gap-1 mt-1">
+                      {product.colors.map((color, index) => (
+                        <span
+                          key={index}
+                          title={color}
+                          className="w-4 h-4 rounded-full border"
+                          style={{
+                            backgroundColor: color.toLowerCase(),
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+
                   <Button
-  size="sm"
-  className="bg-primary-600 hover:bg-primary-700"
-  onClick={async (e) => {
-    e.stopPropagation();
+                    size="sm"
+                    className="bg-primary-600 hover:bg-primary-700"
+                    onClick={async (e) => {
+                      e.stopPropagation();
 
-    if (product.sizes.length > 0) {
-      const sizeOptions = product.sizes.reduce((acc, size) => {
-  acc[size] = size;
-  return acc;
-}, {} as Record<string, string>);
+                      if (product.sizes.length > 0) {
+                        const sizeOptions = product.sizes.reduce(
+                          (acc, size) => {
+                            acc[size] = size;
+                            return acc;
+                          },
+                          {} as Record<string, string>
+                        );
 
-// Normaliza texto para comparación
-const normalize = (str: string) =>
-  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                        // Normaliza texto para comparación
+                        const normalize = (str: string) =>
+                          str
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .toLowerCase();
 
-// Detectar tipo de mascota según `pet_type` o `name`
-const petTypeNormalized = normalize(product.pet_type || "");
-const nameNormalized = normalize(product.name || "");
+                        // Detectar tipo de mascota según `pet_type` o `name`
+                        const petTypeNormalized = normalize(
+                          product.pet_type || ""
+                        );
+                        const nameNormalized = normalize(product.name || "");
 
-let mappedType: "perro" | "gato" | null = null;
+                        let mappedType: "perro" | "gato" | null = null;
 
-if (petTypeNormalized.includes("dog") || nameNormalized.includes("perro") || nameNormalized.includes("dog")) {
-  mappedType = "perro";
-} else if (petTypeNormalized.includes("cat") || nameNormalized.includes("gato") || nameNormalized.includes("cat")) {
-  mappedType = "gato";
-}
+                        if (
+                          petTypeNormalized.includes("dog") ||
+                          nameNormalized.includes("perro") ||
+                          nameNormalized.includes("dog")
+                        ) {
+                          mappedType = "perro";
+                        } else if (
+                          petTypeNormalized.includes("cat") ||
+                          nameNormalized.includes("gato") ||
+                          nameNormalized.includes("cat")
+                        ) {
+                          mappedType = "gato";
+                        }
 
-const imageSrc =
-  mappedType === "perro"
-    ? "/guia-tallas.png"
-    : mappedType === "gato"
-    ? "/medidas_gatos.webp"
-    : null;
+                        const imageSrc =
+                          mappedType === "perro"
+                            ? "/guia-tallas.png"
+                            : mappedType === "gato"
+                            ? "/medidas_gatos.webp"
+                            : null;
 
-const { value: selectedSize } = await Swal.fire({
-  title: "Selecciona una talla",
-  html: `
+                        const { value: selectedSize } = await Swal.fire({
+                          title: "Selecciona una talla",
+                          html: `
     <div style="display: flex; flex-direction: column; gap: 1rem;">
       <p style="font-size: 14px; color: #4B5563;">Selecciona una talla disponible para este producto.</p>
       <select id="tallaSelect" class="swal2-input" style="width: 100%; padding: 0.5rem; font-size: 14px;">
@@ -467,47 +507,55 @@ const { value: selectedSize } = await Swal.fire({
       }
     </div>
   `,
-  showCancelButton: true,
-  confirmButtonText: "Agregar al carrito",
-  cancelButtonText: "Cancelar",
-  confirmButtonColor: "#8b5cf6",
-  customClass: {
-    popup: "swal-wide rounded-xl max-w-[90vw] sm:max-w-md",
-    title: "text-lg font-semibold",
-  },
-  didOpen: () => {
-    const selectEl = document.getElementById("tallaSelect") as HTMLSelectElement;
-    if (selectEl) selectEl.focus();
-  },
-  preConfirm: () => {
-    const value = (document.getElementById("tallaSelect") as HTMLSelectElement)?.value;
-    if (!value) {
-      Swal.showValidationMessage("Debes seleccionar una talla");
-      return;
-    }
-    return value;
-  },
-});
+                          showCancelButton: true,
+                          confirmButtonText: "Agregar al carrito",
+                          cancelButtonText: "Cancelar",
+                          confirmButtonColor: "#8b5cf6",
+                          customClass: {
+                            popup:
+                              "swal-wide rounded-xl max-w-[90vw] sm:max-w-md",
+                            title: "text-lg font-semibold",
+                          },
+                          didOpen: () => {
+                            const selectEl = document.getElementById(
+                              "tallaSelect"
+                            ) as HTMLSelectElement;
+                            if (selectEl) selectEl.focus();
+                          },
+                          preConfirm: () => {
+                            const value = (
+                              document.getElementById(
+                                "tallaSelect"
+                              ) as HTMLSelectElement
+                            )?.value;
+                            if (!value) {
+                              Swal.showValidationMessage(
+                                "Debes seleccionar una talla"
+                              );
+                              return;
+                            }
+                            return value;
+                          },
+                        });
 
-      if (selectedSize) {
-        handleAddToCart(product.id, 1, selectedSize);
-      }
-    } else {
-      handleAddToCart(product.id, 1, "");
-    }
-  }}
-  disabled={addingToCart === product.id}
->
-  {addingToCart === product.id ? (
-    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-  ) : (
-    <>
-      <ShoppingCart className="h-4 w-4 mr-1" />
-      Agregar
-    </>
-  )}
-</Button>
-
+                        if (selectedSize) {
+                          handleAddToCart(product.id, 1, selectedSize);
+                        }
+                      } else {
+                        handleAddToCart(product.id, 1, "");
+                      }
+                    }}
+                    disabled={addingToCart === product.id}
+                  >
+                    {addingToCart === product.id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <>
+                        <ShoppingCart className="h-4 w-4 mr-1" />
+                        Agregar
+                      </>
+                    )}
+                  </Button>
                 </div>
               </CardContent>
             </Card>

@@ -40,13 +40,16 @@ router.get("/", optionalAuth, async (req, res) => {
     });
 
     const items = cartItems.map((item) => ({
-  id: item.id,
-  product_id: item.productId,
-  product_name: item.product.name,
-  price: item.product.price,
-  quantity: item.quantity,
-  stock: item.product.stock,
-  image: item.product.images?.[0] || null, // ✅ usa solo la primera imagen
+      id: item.id,
+      product_id: item.productId,
+      product_name: item.product.name,
+      price: item.product.price,
+      quantity: item.quantity,
+      stock: item.product.stock,
+      image: item.product.images?.[0] || null, 
+      size: item.size,
+      color: item.color,
+      isActive: item.isActive,
 }));
 
 
@@ -76,19 +79,30 @@ router.get("/", optionalAuth, async (req, res) => {
 router.post("/", optionalAuth, validateCartItem, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { product_id, quantity, size } = req.body;
+    const { product_id, quantity, size, color } = req.body;
+
 
     // Verificar que el producto existe y tiene stock (usando Prisma)
     const product = await prisma.product.findFirst({
       where: {
         id: product_id,
         isActive: true,
+        colors: {
+          has: color,
+        },
+        sizes: {
+          has: size,
+        },
+
       },
       select: {
         id: true,
         name: true,
         price: true,
         stock: true,
+        colors: true,
+        sizes: true,
+        isActive: true,
       },
     });
 
@@ -106,6 +120,8 @@ router.post("/", optionalAuth, validateCartItem, async (req, res) => {
         userId,
         productId: product_id,
         size: size || null,
+        color: color || null,
+        isActive: true,
       },
     });
 
@@ -120,7 +136,7 @@ router.post("/", optionalAuth, validateCartItem, async (req, res) => {
         where: { id: existingItem.id },
         data: {
           quantity: newQuantity,
-          updatedAt: new Date(),
+          updatedAt: new Date(),      
         },
       });
 
@@ -133,6 +149,8 @@ router.post("/", optionalAuth, validateCartItem, async (req, res) => {
           productId: product_id,
           quantity,
           size: size || null,
+          color: color || null,
+          isActive: true,
         },
       });
 

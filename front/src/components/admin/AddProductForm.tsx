@@ -23,6 +23,7 @@ interface Product {
   stock: number;
   petType: string;
   images: string[];
+  colors: string[];
   sizes: string[];
   categoryId?: number;
   category?: {
@@ -63,6 +64,7 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
     categoryId: "",
     sizes: [] as string[],
     isActive: true,
+    colors: [] as string[],
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -112,6 +114,18 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
     setImageFile(null);
   };
 
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const colorArray = value
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean);
+    setFormData((prev) => ({
+      ...prev,
+      colors: colorArray,
+    }));
+  };
+
   const isFormValid =
     formData.name.trim() !== "" &&
     formData.price.trim() !== "" &&
@@ -122,7 +136,11 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
 
   const handleSubmit = async () => {
     if (!isFormValid) {
-      Swal.fire("Error", "Completa todos los campos obligatorios y selecciona una imagen.", "error");
+      Swal.fire(
+        "Error",
+        "Completa todos los campos obligatorios y selecciona una imagen.",
+        "error"
+      );
       return;
     }
     const images = imageFile
@@ -140,8 +158,11 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
         : undefined,
       stock: formData.stock,
       petType: formData.petType,
-      categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
+      categoryId: formData.categoryId
+        ? parseInt(formData.categoryId)
+        : undefined,
       sizes: formData.sizes,
+      colors: formData.colors,
       images,
       isActive: formData.isActive,
     };
@@ -269,6 +290,18 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
                 ))}
               </div>
             </div>
+            <div>
+              <Label htmlFor="colors">Colores disponibles</Label>
+              <Input
+                id="colors"
+                type="text"
+                placeholder="Ej. rojo, azul, negro"
+                onChange={handleColorChange}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Ingresa los colores separados por comas.
+              </p>
+            </div>
 
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -293,14 +326,16 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({
                   type="radio"
                   checked={!useUrlInput}
                   onChange={() => setUseUrlInput(false)}
-                /> Archivo
+                />{" "}
+                Archivo
               </label>
               <label>
                 <input
                   type="radio"
                   checked={useUrlInput}
                   onChange={() => setUseUrlInput(true)}
-                /> URL
+                />{" "}
+                URL
               </label>
             </div>
             {!useUrlInput ? (

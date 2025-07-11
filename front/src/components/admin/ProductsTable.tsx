@@ -1,25 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
-  Card, CardContent, CardHeader, CardTitle
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
-} from '@/components/ui/table';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import {
-  Search, Plus, Edit, Trash2, Eye, MoreHorizontal
-} from 'lucide-react';
-import Swal from 'sweetalert2';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Search, Plus, Edit, Trash2, Eye, MoreHorizontal } from "lucide-react";
+import Swal from "sweetalert2";
 
-import { EditProductModal } from './EditProductModal';
-import { AddProductModal } from './AddProductModal';
-import { ViewProductModal } from './ViewProductModal'; // NUEVO
-import { productService, categoryService } from '@/services/api';
+import { EditProductModal } from "./EditProductModal";
+import { AddProductModal } from "./AddProductModal";
+import { ViewProductModal } from "./ViewProductModal"; // NUEVO
+import { productService, categoryService } from "@/services/api";
 
 interface Product {
   id: number;
@@ -31,6 +35,7 @@ interface Product {
   petType: string;
   images: string[];
   sizes: string[];
+  colors: string[];
   categoryId?: number;
   category?: {
     id: number;
@@ -53,9 +58,9 @@ export const ProductsTable = () => {
   const [showViewModal, setShowViewModal] = useState(false); // NUEVO
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [filterName, setFilterName] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterName, setFilterName] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -72,8 +77,8 @@ export const ProductsTable = () => {
         setProducts(productsData || []);
         setCategories(categoriesData || []);
       } catch (err) {
-        console.error('Error loading products:', err);
-        setError('Error al cargar los productos');
+        console.error("Error loading products:", err);
+        setError("Error al cargar los productos");
       } finally {
         setLoading(false);
       }
@@ -88,6 +93,7 @@ export const ProductsTable = () => {
 
   const handleUpdateProduct = async (updatedProduct: Product) => {
     try {
+      console.log("🟡 Enviando a update:", updatedProduct);
       await productService.update(updatedProduct.id, {
         name: updatedProduct.name,
         description: updatedProduct.description,
@@ -97,45 +103,53 @@ export const ProductsTable = () => {
         petType: updatedProduct.petType,
         images: updatedProduct.images,
         sizes: updatedProduct.sizes,
+        colors: updatedProduct.colors, 
         categoryId: updatedProduct.categoryId,
+        isActive: updatedProduct.isActive,
       });
 
-      setProducts(prev =>
-        prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+      setProducts((prev) =>
+        prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
       );
       setIsEditModalOpen(false);
     } catch (error) {
-      console.error('Error updating product:', error);
-      alert('Error al actualizar el producto');
+      console.error("Error updating product:", error);
+      alert("Error al actualizar el producto");
     }
   };
 
   const handleDeleteProduct = async (productId: number) => {
     const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer.',
-      icon: 'warning',
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
     });
     if (!result.isConfirmed) return;
 
     try {
       await productService.delete(productId);
-      setProducts(prev => prev.filter(p => p.id !== productId));
-      await Swal.fire('Eliminado', 'Producto eliminado correctamente', 'success');
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      await Swal.fire(
+        "Eliminado",
+        "Producto eliminado correctamente",
+        "success"
+      );
     } catch (error) {
-      console.error('Error deleting product:', error);
-      await Swal.fire('Error', 'No se pudo eliminar el producto.', 'error');
+      console.error("Error deleting product:", error);
+      await Swal.fire("Error", "No se pudo eliminar el producto.", "error");
     }
   };
 
-  const handleAddProduct = async (newProduct: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleAddProduct = async (
+    newProduct: Omit<Product, "id" | "createdAt" | "updatedAt">
+  ) => {
     try {
       const createdProduct = await productService.create({
         name: newProduct.name,
-        description: newProduct.description || '',
+        description: newProduct.description || "",
         price: newProduct.price,
         originalPrice: newProduct.originalPrice,
         stock: newProduct.stock,
@@ -145,11 +159,11 @@ export const ProductsTable = () => {
         categoryId: newProduct.categoryId,
       });
 
-      setProducts(prev => [...prev, createdProduct]);
+      setProducts((prev) => [...prev, createdProduct]);
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error('Error creating product:', error);
-      alert('Error al crear el producto');
+      console.error("Error creating product:", error);
+      alert("Error al crear el producto");
     }
   };
 
@@ -160,31 +174,40 @@ export const ProductsTable = () => {
   };
 
   const getCategoryName = (categoryId?: number) => {
-    if (!categoryId) return 'Sin categoría';
-    const category = categories.find(c => c.id === categoryId);
-    return category?.name || 'Sin categoría';
+    if (!categoryId) return "Sin categoría";
+    const category = categories.find((c) => c.id === categoryId);
+    return category?.name || "Sin categoría";
   };
 
-  const filteredProducts = products.filter(product => {
-    const nameMatch = product.name.toLowerCase().includes(filterName.toLowerCase());
-    const categoryMatch = filterCategory === '' || getCategoryName(product.categoryId) === filterCategory;
-    const statusMatch = filterStatus === '' ||
-      (filterStatus === 'Activo' && product.stock > 10) ||
-      (filterStatus === 'Stock Bajo' && product.stock <= 10 && product.stock > 0) ||
-      (filterStatus === 'Sin Stock' && product.stock === 0);
+  const filteredProducts = products.filter((product) => {
+    const nameMatch = product.name
+      .toLowerCase()
+      .includes(filterName.toLowerCase());
+    const categoryMatch =
+      filterCategory === "" ||
+      getCategoryName(product.categoryId) === filterCategory;
+    const statusMatch =
+      filterStatus === "" ||
+      (filterStatus === "Activo" && product.stock > 10) ||
+      (filterStatus === "Stock Bajo" &&
+        product.stock <= 10 &&
+        product.stock > 0) ||
+      (filterStatus === "Sin Stock" && product.stock === 0);
     return nameMatch && categoryMatch && statusMatch;
   });
 
   const clearFilters = () => {
-    setFilterName('');
-    setFilterCategory('');
-    setFilterStatus('');
+    setFilterName("");
+    setFilterCategory("");
+    setFilterStatus("");
   };
 
   if (loading) {
     return (
       <Card>
-        <CardContent className="p-8 text-center">Cargando productos...</CardContent>
+        <CardContent className="p-8 text-center">
+          Cargando productos...
+        </CardContent>
       </Card>
     );
   }
@@ -224,8 +247,11 @@ export const ProductsTable = () => {
                 onChange={(e) => setFilterName(e.target.value)}
               />
             </div>
-            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
-              {showFilters ? 'Ocultar Filtros' : 'Filtros'}
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              {showFilters ? "Ocultar Filtros" : "Filtros"}
             </Button>
           </div>
 
@@ -238,7 +264,9 @@ export const ProductsTable = () => {
               >
                 <option value="">Todas las categorías</option>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
                 ))}
               </select>
               <select
@@ -251,7 +279,9 @@ export const ProductsTable = () => {
                 <option value="Stock Bajo">Stock Bajo</option>
                 <option value="Sin Stock">Sin Stock</option>
               </select>
-              <Button variant="ghost" onClick={clearFilters}>Limpiar filtros</Button>
+              <Button variant="ghost" onClick={clearFilters}>
+                Limpiar filtros
+              </Button>
             </div>
           )}
         </CardHeader>
@@ -269,18 +299,20 @@ export const ProductsTable = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map(product => (
+              {filteredProducts.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <img
-                        src={product.images[0] || '/placeholder.svg'}
+                        src={product.images[0] || "/placeholder.svg"}
                         alt={product.name}
                         className="w-12 h-12 rounded object-cover"
                       />
                       <div>
                         <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-gray-500">ID: #{product.id}</p>
+                        <p className="text-sm text-gray-500">
+                          ID: #{product.id}
+                        </p>
                       </div>
                     </div>
                   </TableCell>
@@ -303,14 +335,18 @@ export const ProductsTable = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProduct(product);
-                          setShowViewModal(true);
-                        }}>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setShowViewModal(true);
+                          }}
+                        >
                           <Eye className="mr-2 h-4 w-4" />
                           Ver detalles
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditClick(product)}>
+                        <DropdownMenuItem
+                          onClick={() => handleEditClick(product)}
+                        >
                           <Edit className="mr-2 h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
@@ -337,13 +373,15 @@ export const ProductsTable = () => {
         </CardContent>
       </Card>
 
-      <EditProductModal
-        open={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        product={selectedProduct}
-        onUpdate={handleUpdateProduct}
-        categories={categories}
-      />
+      {selectedProduct && (
+        <EditProductModal
+          open={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          product={selectedProduct}
+          onUpdate={handleUpdateProduct}
+          categories={categories}
+        />
+      )}
 
       <AddProductModal
         open={isAddModalOpen}

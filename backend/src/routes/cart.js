@@ -6,8 +6,6 @@ import prisma from "../lib/prisma.js";
 
 const router = express.Router();
 
-// GET /api/cart - Obtener carrito del usuario
-// GET /api/cart
 router.get("/", optionalAuth, async (req, res) => {
   const userId = req.user?.id || null;
 
@@ -46,12 +44,10 @@ router.get("/", optionalAuth, async (req, res) => {
       price: item.product.price,
       quantity: item.quantity,
       stock: item.product.stock,
-      image: item.product.images?.[0] || null, 
+      image: item.product.images?.[0] || null,
       size: item.size,
-      color: item.color,
-      isActive: item.isActive,
-}));
-
+      color: item.colors,
+    }));
 
     const subtotal = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -75,26 +71,20 @@ router.get("/", optionalAuth, async (req, res) => {
   }
 });
 
-// POST /api/cart - Agregar producto al carrito
 router.post("/", optionalAuth, validateCartItem, async (req, res) => {
   try {
     const userId = req.user.id;
     const { product_id, quantity, size, color } = req.body;
 
+    const whereClause = {
+      id: product_id,
+      isActive: true,
+      ...(color && { colors: { has: color } }),
+      ...(size && { sizes: { has: size } }),
+    };
 
-    // Verificar que el producto existe y tiene stock (usando Prisma)
     const product = await prisma.product.findFirst({
-      where: {
-        id: product_id,
-        isActive: true,
-        colors: {
-          has: color,
-        },
-        sizes: {
-          has: size,
-        },
-
-      },
+      where: whereClause,
       select: {
         id: true,
         name: true,
@@ -114,19 +104,16 @@ router.post("/", optionalAuth, validateCartItem, async (req, res) => {
       return res.status(400).json({ error: "Stock insuficiente" });
     }
 
-    // Verificar si el producto ya está en el carrito (usando Prisma)
     const existingItem = await prisma.cartItem.findFirst({
       where: {
         userId,
         productId: product_id,
         size: size || null,
-        color: color || null,
-        isActive: true,
+        colors: color || null,
       },
     });
 
     if (existingItem) {
-      // Actualizar cantidad
       const newQuantity = existingItem.quantity + quantity;
       if (newQuantity > product.stock) {
         return res.status(400).json({ error: "Stock insuficiente" });
@@ -136,20 +123,100 @@ router.post("/", optionalAuth, validateCartItem, async (req, res) => {
         where: { id: existingItem.id },
         data: {
           quantity: newQuantity,
-          updatedAt: new Date(),      
+          updatedAt: new Date(),
         },
       });
 
       res.json({ message: "Cantidad actualizada en el carrito" });
     } else {
-      // Agregar nuevo item
       await prisma.cartItem.create({
         data: {
           userId,
           productId: product_id,
           quantity,
           size: size || null,
-          color: color || null,
+          colors: color || null,
+        },
+      });
+
+      res.status(201).json({ message: "Producto agregado al carrito" });
+    }
+  } catch (error) {
+    console.error("Add to cart error:", error);
+    res.status(500).json({ error: "Error al agregar al carrito" });
+  }
+});
+
+// POST /api/cart - Agregar producto al carrito
+router.post("/", optionalAuth, validateCartItem, async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
+
+    const userId = req.user.id;
+    const { product_id, quantity, size, color } = req.body;
+
+    const whereClause = {
+      id: product_id,
+      isActive: true,
+      ...(color && { colors: { has: color } }),
+      ...(size && { sizes: { has: size } }),
+    };
+
+    const product = await prisma.product.findFirst({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+        colors: true,
+        sizes: true,
+        isActive: true,
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    if (product.stock < quantity) {
+      return res.status(400).json({ error: "Stock insuficiente" });
+    }
+
+    const existingItem = await prisma.cartItem.findFirst({
+      where: {
+        userId,
+        productId: product_id,
+        size: size || null,
+        colors: color || null,
+      },
+    });
+
+    if (existingItem) {
+      const newQuantity = existingItem.quantity + quantity;
+      if (newQuantity > product.stock) {
+        return res.status(400).json({ error: "Stock insuficiente" });
+      }
+
+      await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: {
+          quantity: newQuantity,
+          updatedAt: new Date(),
+        },
+      });
+
+      res.json({ message: "Cantidad actualizada en el carrito" });
+    } else {
+      await prisma.cartItem.create({
+        data: {
+          userId,
+          productId: product_id,
+          quantity,
+          size: size || null,
+          colors: color || null,
           isActive: true,
         },
       });
@@ -165,7 +232,15 @@ router.post("/", optionalAuth, validateCartItem, async (req, res) => {
 // PUT /api/cart/:id - Actualizar cantidad de item en carrito
 router.put("/:id", authenticateToken, validateId, async (req, res) => {
   try {
+    // ✅ Reemplazo
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
     const userId = req.user.id;
+
     const { id } = req.params;
     const { quantity } = req.body;
 
@@ -207,7 +282,11 @@ router.put("/:id", authenticateToken, validateId, async (req, res) => {
 // DELETE /api/cart/:id - Eliminar item del carrito
 router.delete("/:id", authenticateToken, validateId, async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
     const userId = req.user.id;
+
     const { id } = req.params;
 
     // Verificar que el item pertenece al usuario (Prisma)
@@ -236,6 +315,9 @@ router.delete("/:id", authenticateToken, validateId, async (req, res) => {
 // DELETE /api/cart - Vaciar carrito
 router.delete("/", authenticateToken, async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
     const userId = req.user.id;
 
     await query("DELETE FROM cart_items WHERE user_id = ?", [userId]);
@@ -250,7 +332,11 @@ router.delete("/", authenticateToken, async (req, res) => {
 // POST /api/cart/checkout - Preparar checkout (mover carrito a pedido)
 router.post("/checkout", authenticateToken, async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
     const userId = req.user.id;
+
     const {
       shipping_address,
       shipping_city,
@@ -363,7 +449,11 @@ router.post("/checkout", authenticateToken, async (req, res) => {
 });
 
 router.post("/sync", authenticateToken, async (req, res) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ error: "Usuario no autenticado" });
+  }
   const userId = req.user.id;
+
   const { items } = req.body;
 
   try {

@@ -26,9 +26,29 @@ import Swal from "sweetalert2";
 
 // Declaración de Culqi
 declare global {
-  interface Window {
-    Culqi: any;
+  interface CulqiWindow {
+    token?: {
+      id: string;
+    };
+    settings?: (config: {
+      title: string;
+      currency: string;
+      amount: number;
+      publicKey: string;
+      description?: string;
+    }) => void;
+    open?: () => void;
   }
+
+  interface Window {
+    Culqi: CulqiWindow;
+  }
+}
+interface CulqiSettings {
+  title: string;
+  currency: string;
+  amount: number;
+  description?: string; // opcional si tu versión lo permite
 }
 
 interface CartItem {
@@ -97,7 +117,7 @@ const Checkout = () => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    window.culqi = function () {
+    (window as unknown as { culqi: () => void }).culqi = function () {
       if (isPaying.current) {
         if (window.Culqi && window.Culqi.token) {
           // Token recibido, envíalo al backend
@@ -118,8 +138,14 @@ const Checkout = () => {
     script.src = "https://checkout.culqi.com/js/v4";
     script.onload = () => {
       if (window.Culqi) {
-        window.Culqi.publicKey =
-          import.meta.env.VITE_CULQI_PUBLIC_KEY || "pk_test_51H7X8X8X8X8X8X8X8";
+        window.Culqi.settings?.({
+          title: "Mambo PetShop",
+          currency: "PEN",
+          amount: 0,
+          publicKey:
+            import.meta.env.VITE_CULQI_PUBLIC_KEY ||
+            "pk_test_51H7X8X8X8X8X8X8X8",
+        });
       }
     };
     document.head.appendChild(script);
@@ -188,17 +214,25 @@ const Checkout = () => {
     }));
   };
 
+  const requiredFields = [
+    "firstName",
+    "lastName",
+    "email",
+    "phone",
+    "address",
+    "city",
+    "state",
+    "zipCode",
+  ];
+
+  const isFormValid = () => {
+    for (const field of requiredFields) {
+      if (!shippingForm[field as keyof ShippingForm]) return false;
+    }
+    return termsAccepted;
+  };
+
   const validateForm = () => {
-    const requiredFields = [
-      "firstName",
-      "lastName",
-      "email",
-      "phone",
-      "address",
-      "city",
-      "state",
-      "zipCode",
-    ];
     for (const field of requiredFields) {
       if (!shippingForm[field as keyof ShippingForm]) {
         Swal.fire({
@@ -242,25 +276,28 @@ const Checkout = () => {
 
   const handlePay = () => {
     if (!window.Culqi) {
-      alert('Culqi no está cargado');
+      alert("Culqi no está cargado");
       return;
     }
+
     isPaying.current = true;
-    window.Culqi.settings({
-      title: 'Mambo PetShop',
-      currency: 'PEN',
-      description: 'Pago de pedido',
+
+    window.Culqi.settings?.({
+      title: "Mambo PetShop",
+      currency: "PEN",
+      description: "Pago de pedido",
       amount: Math.round(total * 100),
-      // publicKey: import.meta.env.VITE_CULQI_PUBLIC_KEY, // si tu versión lo requiere
-    });
-    window.Culqi.open();
+      publicKey: import.meta.env.VITE_CULQI_PUBLIC_KEY, // ✅ correcto ahora
+    }); 
+
+    window.Culqi.open?.();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
@@ -274,18 +311,18 @@ const Checkout = () => {
       const paymentToken = null;
       // El flujo de Culqi v4 ahora se maneja con handlePay y handleCulqiToken
       // Si el método de pago es contra entrega, puedes manejarlo aquí:
-      if (paymentMethod === 'cash') {
+      if (paymentMethod === "cash") {
         // Aquí puedes llamar directamente a tu backend para crear el pedido sin token
         // orderService.checkout({ ...datos, payment_method: 'cash' });
       }
       // Para tarjeta, el flujo se maneja en handleCulqiToken
     } catch (error) {
-      console.error('Error processing checkout:', error);
+      console.error("Error processing checkout:", error);
       Swal.fire({
-        title: 'Error',
-        text: 'Error al procesar el pedido. Inténtalo de nuevo.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar'
+        title: "Error",
+        text: "Error al procesar el pedido. Inténtalo de nuevo.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
       });
     } finally {
       setProcessing(false);
@@ -644,13 +681,23 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                <Button
-                  className="w-full bg-primary-600 hover:bg-primary-700 text-white"
-                  onClick={handlePay} 
-                  disabled={processing}
-                >
-                  Finalizar Compra
-                </Button>
+                {paymentMethod === "card" ? (
+                  <Button
+                    className="w-full bg-primary-600 hover:bg-primary-700 text-white"
+                    onClick={handlePay}
+                    disabled={!isFormValid() || processing}
+                  >
+                    Finalizar Compra con Tarjeta
+                  </Button>
+                ) : (
+                  <Button
+                    className="w-full bg-primary-600 hover:bg-primary-700 text-white"
+                    onClick={handleSubmit}
+                    disabled={!isFormValid() || processing}
+                  >
+                    Confirmar Pedido (Pago contra Entrega)
+                  </Button>
+                )}
 
                 <div className="text-xs text-gray-500 text-center">
                   Al completar tu compra, aceptas nuestros términos y

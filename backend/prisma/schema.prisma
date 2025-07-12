@@ -28,7 +28,7 @@ model User {
 
 model Category {
   id          Int       @id @default(autoincrement())
-  name        String    @unique  
+  name        String    @unique
   description String?
   image       String?
   createdAt   DateTime  @default(now())
@@ -45,13 +45,13 @@ model Product {
   petType       PetType
   images        String[]
   sizes         String[]
-  colors        String[]
   rating        Float       @default(0)
   reviewsCount  Int         @default(0)
   isActive      Boolean     @default(true)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   categoryId    Int?
+  colors        String[]
   cartItems     CartItem[]
   orderItems    OrderItem[]
   category      Category?   @relation(fields: [categoryId], references: [id])
@@ -67,9 +67,9 @@ model CartItem {
   updatedAt DateTime @updatedAt
   userId    Int
   productId Int
+  colors    String?
   product   Product  @relation(fields: [productId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
-  colors    String?
 }
 
 model Order {
@@ -125,6 +125,18 @@ model Wishlist {
   user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, productId])
+}
+
+model BlogPost {
+  id        Int      @id @default(autoincrement())
+  title     String
+  excerpt   String
+  content   String
+  date      DateTime
+  category  String
+  image     String
+  status    String   @default("PUBLISHED")
+  createdAt DateTime @default(now())
 }
 
 enum Role {

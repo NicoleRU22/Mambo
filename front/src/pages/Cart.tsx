@@ -410,7 +410,7 @@ const Cart = () => {
                       )}
                       {item.color && (
                         <p className="text-sm text-gray-500">
-                          Color: {item.color}
+                          Colors: {item.color}
                         </p>
                       )}
                     </div>

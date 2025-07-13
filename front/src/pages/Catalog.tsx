@@ -140,13 +140,16 @@ const Catalog = () => {
     setVisibleCount((prev) => Math.min(prev + 8, sortedProducts.length));
   };
 
+  // ↑ al inicio del componente…
   const handleAddToCart = async (
     productId: number,
     quantity: number,
-    size: string
+    size: string = "",
+    color: string = ""
   ) => {
     if (!user) {
-      addToLocalCart(productId, quantity, size);
+      // si no hay usuario, guarda también talla/color en local
+      addToLocalCart(productId, quantity, size, color);
       setCartItemCount(
         getLocalCart().reduce((sum, item) => sum + item.quantity, 0)
       );
@@ -159,7 +162,8 @@ const Catalog = () => {
 
     try {
       setAddingToCart(productId);
-      await cartService.addToCart(productId, quantity);
+      // ahora enviamos size y color al back
+      await cartService.addToCart(productId, quantity, size, color);
       await loadCartCount();
       Swal.fire("¡Éxito!", "Producto agregado al carrito", "success");
     } catch (error: unknown) {
@@ -384,7 +388,6 @@ const Catalog = () => {
                   >
                     <Eye className="h-4 w-4 text-gray-600 hover:text-blue-500" />
                   </button>
-                  
                 </div>
               </div>
 
@@ -433,48 +436,56 @@ const Catalog = () => {
                     size="sm"
                     className="bg-primary-600 hover:bg-primary-700"
                     onClick={async (e) => {
-  e.stopPropagation();
+                      e.stopPropagation();
 
-  if (product.sizes.length > 0) {
-    const sizeOptions = product.sizes.reduce((acc, size) => {
-      acc[size] = size;
-      return acc;
-    }, {} as Record<string, string>);
+                      if (product.sizes.length > 0) {
+                        const sizeOptions = product.sizes.reduce(
+                          (acc, size) => {
+                            acc[size] = size;
+                            return acc;
+                          },
+                          {} as Record<string, string>
+                        );
 
-    const colorOptions = product.colors || [];
+                        const colorOptions = product.colors || [];
 
-    const normalize = (str: string) =>
-      str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                        const normalize = (str: string) =>
+                          str
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .toLowerCase();
 
-    const petTypeNormalized = normalize(product.pet_type || "");
-    const nameNormalized = normalize(product.name || "");
+                        const petTypeNormalized = normalize(
+                          product.pet_type || ""
+                        );
+                        const nameNormalized = normalize(product.name || "");
 
-    let mappedType: "perro" | "gato" | null = null;
+                        let mappedType: "perro" | "gato" | null = null;
 
-    if (
-      petTypeNormalized.includes("dog") ||
-      nameNormalized.includes("perro") ||
-      nameNormalized.includes("dog")
-    ) {
-      mappedType = "perro";
-    } else if (
-      petTypeNormalized.includes("cat") ||
-      nameNormalized.includes("gato") ||
-      nameNormalized.includes("cat")
-    ) {
-      mappedType = "gato";
-    }
+                        if (
+                          petTypeNormalized.includes("dog") ||
+                          nameNormalized.includes("perro") ||
+                          nameNormalized.includes("dog")
+                        ) {
+                          mappedType = "perro";
+                        } else if (
+                          petTypeNormalized.includes("cat") ||
+                          nameNormalized.includes("gato") ||
+                          nameNormalized.includes("cat")
+                        ) {
+                          mappedType = "gato";
+                        }
 
-    const imageSrc =
-      mappedType === "perro"
-        ? "/guia-tallas.png"
-        : mappedType === "gato"
-        ? "/medidas_gatos.webp"
-        : null;
+                        const imageSrc =
+                          mappedType === "perro"
+                            ? "/guia-tallas.png"
+                            : mappedType === "gato"
+                            ? "/medidas_gatos.webp"
+                            : null;
 
-    const { value: formData } = await Swal.fire({
-      title: "Selecciona talla y color",
-      html: `
+                        const { value: formData } = await Swal.fire({
+                          title: "Selecciona talla y color",
+                          html: `
   <div style="display: flex; flex-direction: column; gap: 1rem;">
     <select id="tallaSelect" class="swal2-input">
       <option value="">Elige una talla</option>
@@ -505,46 +516,55 @@ const Catalog = () => {
   </div>
 `,
 
-      showCancelButton: true,
-      confirmButtonText: "Agregar al carrito",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#8b5cf6",
-      customClass: {
-        popup: "swal-wide rounded-xl max-w-[90vw] sm:max-w-md",
-        title: "text-lg font-semibold",
-      },
-      preConfirm: () => {
-        const talla = (
-          document.getElementById("tallaSelect") as HTMLSelectElement
-        )?.value;
-        const color = colorOptions.length
-          ? (document.getElementById("colorSelect") as HTMLSelectElement)?.value
-          : "";
+                          showCancelButton: true,
+                          confirmButtonText: "Agregar al carrito",
+                          cancelButtonText: "Cancelar",
+                          confirmButtonColor: "#8b5cf6",
+                          customClass: {
+                            popup:
+                              "swal-wide rounded-xl max-w-[90vw] sm:max-w-md",
+                            title: "text-lg font-semibold",
+                          },
+                          preConfirm: () => {
+                            const talla = (
+                              document.getElementById(
+                                "tallaSelect"
+                              ) as HTMLSelectElement
+                            )?.value;
+                            const color = colorOptions.length
+                              ? (
+                                  document.getElementById(
+                                    "colorSelect"
+                                  ) as HTMLSelectElement
+                                )?.value
+                              : "";
 
-        if (!talla) {
-          Swal.showValidationMessage("Debes seleccionar una talla");
-          return;
-        }
+                            if (!talla) {
+                              Swal.showValidationMessage(
+                                "Debes seleccionar una talla"
+                              );
+                              return;
+                            }
 
-        if (colorOptions.length > 0 && !color) {
-          Swal.showValidationMessage("Debes seleccionar un color");
-          return;
-        }
+                            if (colorOptions.length > 0 && !color) {
+                              Swal.showValidationMessage(
+                                "Debes seleccionar un color"
+                              );
+                              return;
+                            }
 
-        return { talla, color };
-      },
-    });
+                            return { talla, color };
+                          },
+                        });
 
-    if (formData) {
-      const { talla, color } = formData;
-      handleAddToCart(product.id, 1, talla);
-      // Aquí podrías usar color si deseas guardarlo en el carrito
-    }
-  } else {
-    handleAddToCart(product.id, 1, "");
-  }
-}}
-
+                        if (formData) {
+                          const { talla, color } = formData;
+                          handleAddToCart(product.id, 1, talla, color);
+                        }
+                      } else {
+                        handleAddToCart(product.id, 1, "");
+                      }
+                    }}
                     disabled={addingToCart === product.id}
                   >
                     {addingToCart === product.id ? (

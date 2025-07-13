@@ -27,10 +27,12 @@ export const cartService = {
     }
 
     // ✅ Enviar al backend los datos completos
+    // Después
+    // Después
     const res = await axios.post(
       `${API_URL}/cart`,
       {
-        productId,
+        product_id: productId, // <-- aquí
         quantity,
         size,
         color,

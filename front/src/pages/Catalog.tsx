@@ -433,110 +433,118 @@ const Catalog = () => {
                     size="sm"
                     className="bg-primary-600 hover:bg-primary-700"
                     onClick={async (e) => {
-                      e.stopPropagation();
+  e.stopPropagation();
 
-                      if (product.sizes.length > 0) {
-                        const sizeOptions = product.sizes.reduce(
-                          (acc, size) => {
-                            acc[size] = size;
-                            return acc;
-                          },
-                          {} as Record<string, string>
-                        );
+  if (product.sizes.length > 0) {
+    const sizeOptions = product.sizes.reduce((acc, size) => {
+      acc[size] = size;
+      return acc;
+    }, {} as Record<string, string>);
 
-                        // Normaliza texto para comparación
-                        const normalize = (str: string) =>
-                          str
-                            .normalize("NFD")
-                            .replace(/[\u0300-\u036f]/g, "")
-                            .toLowerCase();
+    const colorOptions = product.colors || [];
 
-                        // Detectar tipo de mascota según `pet_type` o `name`
-                        const petTypeNormalized = normalize(
-                          product.pet_type || ""
-                        );
-                        const nameNormalized = normalize(product.name || "");
+    const normalize = (str: string) =>
+      str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-                        let mappedType: "perro" | "gato" | null = null;
+    const petTypeNormalized = normalize(product.pet_type || "");
+    const nameNormalized = normalize(product.name || "");
 
-                        if (
-                          petTypeNormalized.includes("dog") ||
-                          nameNormalized.includes("perro") ||
-                          nameNormalized.includes("dog")
-                        ) {
-                          mappedType = "perro";
-                        } else if (
-                          petTypeNormalized.includes("cat") ||
-                          nameNormalized.includes("gato") ||
-                          nameNormalized.includes("cat")
-                        ) {
-                          mappedType = "gato";
-                        }
+    let mappedType: "perro" | "gato" | null = null;
 
-                        const imageSrc =
-                          mappedType === "perro"
-                            ? "/guia-tallas.png"
-                            : mappedType === "gato"
-                            ? "/medidas_gatos.webp"
-                            : null;
+    if (
+      petTypeNormalized.includes("dog") ||
+      nameNormalized.includes("perro") ||
+      nameNormalized.includes("dog")
+    ) {
+      mappedType = "perro";
+    } else if (
+      petTypeNormalized.includes("cat") ||
+      nameNormalized.includes("gato") ||
+      nameNormalized.includes("cat")
+    ) {
+      mappedType = "gato";
+    }
 
-                        const { value: selectedSize } = await Swal.fire({
-                          title: "Selecciona una talla",
-                          html: `
-    <div style="display: flex; flex-direction: column; gap: 1rem;">
-      <p style="font-size: 14px; color: #4B5563;">Selecciona una talla disponible para este producto.</p>
-      <select id="tallaSelect" class="swal2-input" style="width: 100%; padding: 0.5rem; font-size: 14px;">
-        <option value="">Elige una talla</option>
-        ${Object.keys(sizeOptions)
-          .map((key) => `<option value="${key}">${sizeOptions[key]}</option>`)
-          .join("")}
-      </select>
-      ${
-        imageSrc
-          ? `<img src="${imageSrc}" alt="Guía de tallas"
-              style="width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />`
-          : `<p style="color: #9CA3AF; font-size: 13px;">No hay guía de tallas disponible para este producto.</p>`
-      }
-    </div>
-  `,
-                          showCancelButton: true,
-                          confirmButtonText: "Agregar al carrito",
-                          cancelButtonText: "Cancelar",
-                          confirmButtonColor: "#8b5cf6",
-                          customClass: {
-                            popup:
-                              "swal-wide rounded-xl max-w-[90vw] sm:max-w-md",
-                            title: "text-lg font-semibold",
-                          },
-                          didOpen: () => {
-                            const selectEl = document.getElementById(
-                              "tallaSelect"
-                            ) as HTMLSelectElement;
-                            if (selectEl) selectEl.focus();
-                          },
-                          preConfirm: () => {
-                            const value = (
-                              document.getElementById(
-                                "tallaSelect"
-                              ) as HTMLSelectElement
-                            )?.value;
-                            if (!value) {
-                              Swal.showValidationMessage(
-                                "Debes seleccionar una talla"
-                              );
-                              return;
-                            }
-                            return value;
-                          },
-                        });
+    const imageSrc =
+      mappedType === "perro"
+        ? "/guia-tallas.png"
+        : mappedType === "gato"
+        ? "/medidas_gatos.webp"
+        : null;
 
-                        if (selectedSize) {
-                          handleAddToCart(product.id, 1, selectedSize);
-                        }
-                      } else {
-                        handleAddToCart(product.id, 1, "");
-                      }
-                    }}
+    const { value: formData } = await Swal.fire({
+      title: "Selecciona talla y color",
+      html: `
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    <select id="tallaSelect" class="swal2-input">
+      <option value="">Elige una talla</option>
+      ${Object.keys(sizeOptions)
+        .map((key) => `<option value="${key}">${sizeOptions[key]}</option>`)
+        .join("")}
+    </select>
+
+    ${
+      imageSrc
+        ? `<img src="${imageSrc}" alt="Guía de tallas"
+            style="width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);" />`
+        : `<p style="color: #9CA3AF; font-size: 13px;">No hay guía de tallas disponible para este producto.</p>`
+    }
+
+    ${
+      colorOptions.length > 0
+        ? `
+        <select id="colorSelect" class="swal2-input">
+          <option value="">Elige un color</option>
+          ${colorOptions
+            .map((color) => `<option value="${color}">${color}</option>`)
+            .join("")}
+        </select>
+      `
+        : ""
+    }
+  </div>
+`,
+
+      showCancelButton: true,
+      confirmButtonText: "Agregar al carrito",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#8b5cf6",
+      customClass: {
+        popup: "swal-wide rounded-xl max-w-[90vw] sm:max-w-md",
+        title: "text-lg font-semibold",
+      },
+      preConfirm: () => {
+        const talla = (
+          document.getElementById("tallaSelect") as HTMLSelectElement
+        )?.value;
+        const color = colorOptions.length
+          ? (document.getElementById("colorSelect") as HTMLSelectElement)?.value
+          : "";
+
+        if (!talla) {
+          Swal.showValidationMessage("Debes seleccionar una talla");
+          return;
+        }
+
+        if (colorOptions.length > 0 && !color) {
+          Swal.showValidationMessage("Debes seleccionar un color");
+          return;
+        }
+
+        return { talla, color };
+      },
+    });
+
+    if (formData) {
+      const { talla, color } = formData;
+      handleAddToCart(product.id, 1, talla);
+      // Aquí podrías usar color si deseas guardarlo en el carrito
+    }
+  } else {
+    handleAddToCart(product.id, 1, "");
+  }
+}}
+
                     disabled={addingToCart === product.id}
                   >
                     {addingToCart === product.id ? (

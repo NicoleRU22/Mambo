@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, X, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -46,7 +45,6 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ isOpen, onClose, onItemAdde
       if (isAuthenticated) {
         loadCart();
       } else {
-        // Cargar carrito local
         const localCart = getLocalCart();
         setCartItems(localCart.map(item => ({
           id: item.productId,
@@ -97,11 +95,18 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ isOpen, onClose, onItemAdde
     navigate('/cart');
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+    <div
+      className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
+        isOpen ? 'bg-black bg-opacity-50' : 'bg-transparent pointer-events-none'
+      }`}
+    >
+      <div
+        className={`transform transition-transform duration-300 ease-in-out bg-white w-full max-w-md shadow-xl h-full flex flex-col ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center space-x-2">
             <ShoppingCart className="h-5 w-5 text-primary-600" />
@@ -112,17 +117,13 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ isOpen, onClose, onItemAdde
               </Badge>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0"
-          >
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="p-4 overflow-y-auto max-h-96">
+        {/* Body scrollable */}
+        <div className="p-4 overflow-y-auto flex-1" style={{ maxHeight: 'calc(100vh - 250px)' }}>
           {loading ? (
             <div className="text-center py-8">
               <p className="text-gray-500">Cargando carrito...</p>
@@ -135,8 +136,11 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ isOpen, onClose, onItemAdde
             </div>
           ) : (
             <div className="space-y-3">
-              {cartItems.slice(0, 3).map((item) => (
-                <div key={item.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+              {cartItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
+                >
                   <img
                     src={item.image || '/placeholder.svg'}
                     alt={item.product_name}
@@ -146,9 +150,7 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ isOpen, onClose, onItemAdde
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {item.product_name}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Cantidad: {item.quantity}
-                    </p>
+                    <p className="text-xs text-gray-500">Cantidad: {item.quantity}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold">
@@ -157,18 +159,11 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ isOpen, onClose, onItemAdde
                   </div>
                 </div>
               ))}
-              
-              {cartItems.length > 3 && (
-                <div className="text-center py-2">
-                  <p className="text-sm text-gray-500">
-                    Y {cartItems.length - 3} productos más...
-                  </p>
-                </div>
-              )}
             </div>
           )}
         </div>
 
+        {/* Footer */}
         {cartItems.length > 0 && (
           <div className="border-t p-4 space-y-3">
             <div className="flex justify-between text-sm">
@@ -189,18 +184,14 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ isOpen, onClose, onItemAdde
             </div>
 
             <div className="space-y-2">
-              <Button 
+              <Button
                 onClick={handleCheckout}
                 className="w-full bg-primary-600 hover:bg-primary-700"
               >
                 Proceder al Pago
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleViewCart}
-                className="w-full"
-              >
+              <Button variant="outline" onClick={handleViewCart} className="w-full">
                 Ver Carrito Completo
               </Button>
             </div>
@@ -211,4 +202,4 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ isOpen, onClose, onItemAdde
   );
 };
 
-export default FloatingCart; 
+export default FloatingCart;

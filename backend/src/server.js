@@ -120,18 +120,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

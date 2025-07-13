@@ -109,7 +109,8 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
+#sripts
+scripts
 # Uploads
 src/uploads/*
 !src/uploads/.gitkeep 

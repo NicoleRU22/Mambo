@@ -103,7 +103,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
 const allowedOrigins = [
   "https://mambopetshop.vercel.app",
   "http://localhost:3000"

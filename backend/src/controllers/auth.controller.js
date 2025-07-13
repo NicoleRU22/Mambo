@@ -1,7 +1,8 @@
+// auth.controller.js
 import { verifyToken } from "../lib/jwt.js";
 import prisma from "../lib/db.js";
 
-const getMe = async (req, res) => {
+export const getMe = async (req, res) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     if (!token) {
@@ -29,5 +30,3 @@ const getMe = async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
-
-module.exports = { getMe };

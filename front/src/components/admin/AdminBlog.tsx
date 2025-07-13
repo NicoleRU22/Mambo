@@ -1,33 +1,36 @@
 // src/components/admin/AdminBlog.tsx
 
-import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import Swal from "sweetalert2";
+import { toast } from "sonner";
+
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 export const AdminBlog = () => {
   const [formData, setFormData] = useState({
-    category: '',
-    date: '',
-    title: '',
-    description: '',
-    content: '',
-    imageUrl: '',
+    category: "",
+    date: "",
+    title: "",
+    description: "",
+    content: "",
+    imageUrl: "",
     imageFile: null as File | null,
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const handleChange = (key: string, value: string) => {
-    if (key === 'imageUrl') {
+    if (key === "imageUrl") {
       setFormData((prev) => ({ ...prev, imageUrl: value, imageFile: null }));
       setImagePreview(value || null);
     } else {
@@ -40,21 +43,39 @@ export const AdminBlog = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, imageFile: file, imageUrl: '' }));
+        setFormData((prev) => ({ ...prev, imageFile: file, imageUrl: "" }));
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const dataToSubmit = {
-      ...formData,
-      image: formData.imageFile ? '[Archivo]' : formData.imageUrl,
-    };
-    console.log('Datos del blog:', dataToSubmit);
-    // Enviar a API o base de datos si se desea
+    // preparamos FormData
+    const payload = new FormData();
+    payload.append("category", formData.category);
+    payload.append("date", formData.date);
+    payload.append("title", formData.title);
+    payload.append("description", formData.description);
+    payload.append("content", formData.content);
+    if (formData.imageFile) {
+      payload.append("imageFile", formData.imageFile);
+    } else {
+      payload.append("imageUrl", formData.imageUrl);
+    }
+
+    try {
+      const res = await fetch("http://localhost:4000/api/blog", {
+        method: "POST",
+        body: payload,
+      });
+      if (!res.ok) throw new Error("Error al crear artículo");
+      toast.success("Artículo publicado con éxito");
+      // opcional: limpiar formulario aquí
+    } catch (err) {
+      toast.error((err as Error).message || "Error al publicar artículo");
+    }
   };
 
   return (
@@ -68,7 +89,7 @@ export const AdminBlog = () => {
         {/* Tipo de artículo */}
         <div>
           <Label className="mb-1 block">Tipo de artículo</Label>
-          <Select onValueChange={(value) => handleChange('category', value)}>
+          <Select onValueChange={(value) => handleChange("category", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecciona un tipo" />
             </SelectTrigger>
@@ -88,7 +109,7 @@ export const AdminBlog = () => {
             type="date"
             id="date"
             value={formData.date}
-            onChange={(e) => handleChange('date', e.target.value)}
+            onChange={(e) => handleChange("date", e.target.value)}
           />
         </div>
 
@@ -100,7 +121,7 @@ export const AdminBlog = () => {
             id="title"
             placeholder="Título del artículo"
             value={formData.title}
-            onChange={(e) => handleChange('title', e.target.value)}
+            onChange={(e) => handleChange("title", e.target.value)}
           />
         </div>
 
@@ -112,7 +133,7 @@ export const AdminBlog = () => {
             id="description"
             placeholder="Breve descripción del artículo"
             value={formData.description}
-            onChange={(e) => handleChange('description', e.target.value)}
+            onChange={(e) => handleChange("description", e.target.value)}
           />
         </div>
 
@@ -124,7 +145,7 @@ export const AdminBlog = () => {
             rows={6}
             placeholder="Escribe el contenido completo aquí..."
             value={formData.content}
-            onChange={(e) => handleChange('content', e.target.value)}
+            onChange={(e) => handleChange("content", e.target.value)}
           />
         </div>
 
@@ -149,14 +170,16 @@ export const AdminBlog = () => {
             placeholder="https://..."
             value={formData.imageUrl}
             disabled={!!formData.imageFile}
-            onChange={(e) => handleChange('imageUrl', e.target.value)}
+            onChange={(e) => handleChange("imageUrl", e.target.value)}
           />
         </div>
 
         {/* Vista previa */}
         {imagePreview && (
           <div className="mt-4">
-            <p className="text-sm text-gray-600 mb-2">Vista previa de imagen:</p>
+            <p className="text-sm text-gray-600 mb-2">
+              Vista previa de imagen:
+            </p>
             <img
               src={imagePreview}
               alt="Vista previa"

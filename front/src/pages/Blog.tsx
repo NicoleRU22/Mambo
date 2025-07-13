@@ -19,7 +19,7 @@ const Blog = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch("/api/blog");
+        const res = await fetch("http://localhost:4000/api/blog");
         const data = await res.json();
         setPosts(data);
       } catch (err) {

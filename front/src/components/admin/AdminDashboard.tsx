@@ -33,6 +33,7 @@ import {
 import AdminProfilePanel from "./AdminProfilePanel";
 import { orderService, userService, productService } from "@/services/api";
 import AdminSettingsPanel from "./AdminSettingsPanel";
+import { AdminBlogList } from "./AdminBlogList";
 
 interface DashboardStats {
   total_orders: number;
@@ -384,66 +385,68 @@ const AdminDashboard = () => {
         {activeSection === "Pedidos" && <OrdersTable />}
         {activeSection === "Usuarios" && <UsuariosPanel />}
         {activeSection === "Blog" && <AdminBlog />}
+        {activeSection === "Listado Blog" && <AdminBlogList />}
         {activeSection === "Contacto" && <AdminContact />}
         {activeSection === "Perfil" && <AdminProfilePanel />}
         {activeSection === "Configuración" && <AdminSettingsPanel />}
         {activeSection === "Quejas y Sugerencias" && <AdminContact />}
-{activeSection === "Categorías" && <CategoriasPanel />}
-{activeSection === "Reportes" && (
-  <div className="space-y-6">
-    <h1 className="text-2xl font-bold mb-4">Reportes Analíticos</h1>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Tendencia de Ventas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={salesData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="ventas"
-                stroke="#8B5CF6"
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        {activeSection === "Categorías" && <CategoriasPanel />}
+        {activeSection === "Reportes" && (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold mb-4">Reportes Analíticos</h1>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tendencia de Ventas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={salesData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line
+                        type="monotone"
+                        dataKey="ventas"
+                        stroke="#8B5CF6"
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Productos Más Vendidos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {topProducts.map((product, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center"
-              >
-                <div>
-                  <p className="text-sm font-medium">{product.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {product.sales} ventas
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium">{product.revenue}</p>
-                </div>
-              </div>
-            ))}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Productos Más Vendidos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {topProducts.map((product, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center"
+                      >
+                        <div>
+                          <p className="text-sm font-medium">{product.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {product.sales} ventas
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">
+                            {product.revenue}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
-  </div>
-)}
-
+        )}
       </div>
     </div>
   );

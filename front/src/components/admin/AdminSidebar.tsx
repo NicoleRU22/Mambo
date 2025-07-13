@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   LayoutDashboard,
   Package,
@@ -29,6 +28,7 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
     { icon: Users, label: 'Usuarios' },
     { icon: BarChart3, label: 'Reportes' },
     { icon: FileText, label: 'Blog' },
+    { icon: FileText, label: 'Listado Blog' }, // <-- NUEVO
     { icon: MessageSquare, label: 'Quejas y Sugerencias' },
     { icon: Settings, label: 'Configuración' },
     { icon: UserCircle, label: 'Perfil' },

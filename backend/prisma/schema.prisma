@@ -84,6 +84,7 @@ model Order {
   shippingPhone   String
   paymentMethod   PaymentMethod
   paymentStatus   PaymentStatus @default(PENDING)
+  paymentIntentId String?      
   notes           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -91,6 +92,7 @@ model Order {
   user            User?         @relation(fields: [userId], references: [id])
   orderItems      OrderItem[]
 }
+
 
 model OrderItem {
   id           Int      @id @default(autoincrement())

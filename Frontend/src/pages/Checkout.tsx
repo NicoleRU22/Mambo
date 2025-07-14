@@ -23,6 +23,16 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cartService, orderService, userService } from "@/services/api";
 import Swal from "sweetalert2";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+import StripeCheckoutForm from "@/components/payments/StripeCheckoutForm";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 // Declaración de Culqi
 declare global {
@@ -225,37 +235,38 @@ const Checkout = () => {
     "zipCode",
   ];
 
+  const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
+  const phoneRegex = /^[0-9]{7,15}$/;
+
   const isFormValid = () => {
     for (const field of requiredFields) {
       if (!shippingForm[field as keyof ShippingForm]) return false;
     }
+    if (!emailRegex.test(shippingForm.email)) return false;
+    if (!phoneRegex.test(shippingForm.phone)) return false;
     return termsAccepted;
   };
 
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
   const validateForm = () => {
+    const errors: { [key: string]: string } = {};
     for (const field of requiredFields) {
       if (!shippingForm[field as keyof ShippingForm]) {
-        Swal.fire({
-          title: "Campos requeridos",
-          text: `Por favor completa el campo ${field}`,
-          icon: "warning",
-          confirmButtonText: "Aceptar",
-        });
-        return false;
+        errors[field] = "Este campo es obligatorio";
       }
     }
-
-    if (!termsAccepted) {
-      Swal.fire({
-        title: "Términos y condiciones",
-        text: "Debes aceptar los términos y condiciones para continuar",
-        icon: "warning",
-        confirmButtonText: "Aceptar",
-      });
-      return false;
+    if (!emailRegex.test(shippingForm.email)) {
+      errors.email = "Correo electrónico inválido";
     }
-
-    return true;
+    if (!phoneRegex.test(shippingForm.phone)) {
+      errors.phone = "Teléfono inválido";
+    }
+    if (!termsAccepted) {
+      errors.terms = "Debes aceptar los términos y condiciones";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleCulqiToken = async (token) => {
@@ -288,7 +299,7 @@ const Checkout = () => {
       description: "Pago de pedido",
       amount: Math.round(total * 100),
       publicKey: import.meta.env.VITE_CULQI_PUBLIC_KEY, // ✅ correcto ahora
-    }); 
+    });
 
     window.Culqi.open?.();
   };
@@ -428,7 +439,13 @@ const Checkout = () => {
                         handleInputChange("email", e.target.value)
                       }
                       required
+                      className={formErrors.email ? "border-red-500" : ""}
                     />
+                    {formErrors.email && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {formErrors.email}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="phone">Teléfono *</Label>
@@ -440,7 +457,13 @@ const Checkout = () => {
                         handleInputChange("phone", e.target.value)
                       }
                       required
+                      className={formErrors.phone ? "border-red-500" : ""}
                     />
+                    {formErrors.phone && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {formErrors.phone}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -682,23 +705,35 @@ const Checkout = () => {
                 </div>
 
                 {paymentMethod === "card" ? (
-                  <Button
-                    className="w-full bg-primary-600 hover:bg-primary-700 text-white"
-                    onClick={handlePay}
-                    disabled={!isFormValid() || processing}
-                  >
-                    Finalizar Compra con Tarjeta
-                  </Button>
+                  <Elements stripe={stripePromise}>
+                    <StripeCheckoutForm
+                      cartItems={cartItems}
+                      total={total}
+                      shippingForm={{
+                        userId: user.id,
+                        firstName: shippingForm.firstName,
+                        lastName: shippingForm.lastName,
+                        email: shippingForm.email,
+                        shippingAddress: shippingForm.address,
+                        shippingCity: shippingForm.city,
+                        shippingState: shippingForm.state,
+                        shippingZipCode: shippingForm.zipCode,
+                        shippingPhone: shippingForm.phone,
+                      }}
+                      onSuccess={(orderId) =>
+                        navigate(`/payment-success?orderId=${orderId}`)
+                      }
+                    />
+                  </Elements>
                 ) : (
-                  <Button
-                    className="w-full bg-primary-600 hover:bg-primary-700 text-white"
+                  <button
                     onClick={handleSubmit}
                     disabled={!isFormValid() || processing}
+                    className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2 rounded"
                   >
                     Confirmar Pedido (Pago contra Entrega)
-                  </Button>
+                  </button>
                 )}
-
                 <div className="text-xs text-gray-500 text-center">
                   Al completar tu compra, aceptas nuestros términos y
                   condiciones

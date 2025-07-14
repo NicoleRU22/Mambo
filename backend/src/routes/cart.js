@@ -34,17 +34,19 @@ router.get("/", optionalAuth, async (req, res) => {
       orderBy: { updatedAt: "desc" },
     });
 
-    const items = cartItems.map((ci) => ({
-      id: ci.id,
-      product_id: ci.productId,
-      product_name: ci.product.name,
-      price: ci.product.price,
-      quantity: ci.quantity,
-      stock: ci.product.stock,
-      image: ci.product.images[0] || null,
-      size: ci.size,
-      color: ci.colors,
-    }));
+    const items = cartItems
+      .filter((ci) => ci.product !== null)
+      .map((ci) => ({
+        id: ci.id,
+        product_id: ci.productId,
+        product_name: ci.product.name,
+        price: ci.product.price,
+        quantity: ci.quantity,
+        stock: ci.product.stock,
+        image: ci.product.images[0] || null,
+        size: ci.size,
+        color: ci.colors,
+      }));
 
     const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const shipping = subtotal > 50 ? 0 : 8.99;
@@ -123,7 +125,7 @@ router.post("/", authenticateToken, validateCartItem, async (req, res) => {
         colors: color || null,
       },
     });
-    return res.status(201).json({ message: "Producto agregado al carrito" });
+    res.json({ message: "Producto agregado al carrito" });
   }
 });
 
@@ -171,11 +173,15 @@ router.delete("/:id", authenticateToken, validateId, async (req, res) => {
   const existing = await prisma.cartItem.findFirst({
     where: { id: Number(id), userId },
   });
+
   if (!existing) {
     return res.status(404).json({ error: "Item no encontrado" });
   }
 
-  await prisma.cartItem.delete({ where: { id: Number(id) } });
+  await prisma.cartItem.delete({
+    where: { id: Number(id) },
+  });
+
   res.json({ message: "Item eliminado del carrito" });
 });
 
@@ -206,6 +212,11 @@ router.post("/sync", authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const items = req.body.items || [];
   for (const { product_id, quantity, size, color } of items) {
+    const product = await prisma.product.findUnique({
+      where: { id: product_id },
+    });
+    if (!product) continue; // ❌ Saltar si no existe
+
     const existing = await prisma.cartItem.findFirst({
       where: {
         userId,
@@ -214,6 +225,7 @@ router.post("/sync", authenticateToken, async (req, res) => {
         colors: color || null,
       },
     });
+
     if (existing) {
       await prisma.cartItem.update({
         where: { id: existing.id },

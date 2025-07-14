@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cartService } from "@/services/api";
 import Swal from "sweetalert2";
+import { useAllProducts } from "@/hooks/useAllProducts";
+
 import {
   getLocalCart,
   addToLocalCart,
@@ -43,6 +45,7 @@ const Cart = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { products } = useAllProducts(); // obtén todos los productos reales
   const [summary, setSummary] = useState<CartSummary>({
     subtotal: 0,
     shipping: 0,
@@ -59,17 +62,36 @@ const Cart = () => {
     } else {
       // Cargar carrito local
       const localCart = getLocalCart();
-      setCartItems(
-        localCart.map((item) => ({
+      const enrichedCartItems = localCart.map((item) => {
+        const product = products.find((p) => p.id === item.productId);
+        return {
           id: item.productId,
           product_id: item.productId,
-          product_name: "", // Puedes cargar el nombre si lo necesitas
-          price: 0, // Puedes cargar el precio si lo necesitas
+          product_name: product?.name || "Producto",
+          price: product?.price || 0,
           quantity: item.quantity,
-          stock: 99,
-          image: "",
-        }))
-      );
+          stock: product?.stock || 99,
+          image: product?.images?.[0] || "",
+          size: item.size,
+          color: item.color,
+        };
+      });
+
+      setCartItems(enrichedCartItems);
+
+      setSummary({
+        subtotal: enrichedCartItems.reduce(
+          (sum, i) => sum + i.price * i.quantity,
+          0
+        ),
+        shipping: 0,
+        total: enrichedCartItems.reduce(
+          (sum, i) => sum + i.price * i.quantity,
+          0
+        ),
+        itemCount: enrichedCartItems.reduce((sum, i) => sum + i.quantity, 0),
+      });
+
       setSummary({
         subtotal: 0,
         shipping: 0,

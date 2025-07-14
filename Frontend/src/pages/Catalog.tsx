@@ -164,8 +164,7 @@ const Catalog = () => {
       setAddingToCart(productId);
       // ahora enviamos size y color al back
       await cartService.addToCart(productId, quantity, size, color);
-      await loadCartCount();
-      Swal.fire("¡Éxito!", "Producto agregado al carrito", "success");
+      await loadCartCount();      
     } catch (error: unknown) {
       console.error("Error al agregar al carrito:", error);
       let msg = "No se pudo agregar al carrito";

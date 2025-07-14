@@ -6,21 +6,21 @@
   "scripts": {
     "dev": "concurrently --kill-others --prefix-colors \"blue.bold,green.bold\" --prefix \"[{name}]\" --names \"BACKEND,FRONTEND\" \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && cross-env PORT=4000 npm run dev",
-    "dev:frontend": "cd front && cross-env PORT=3000 npm run dev",
+    "dev:frontend": "cd Frontend && cross-env PORT=3000 npm run dev",
     "dev:backend-only": "cd backend && cross-env PORT=4000 npm run dev",
-    "dev:frontend-only": "cd front && cross-env PORT=3000 npm run dev",
+    "dev:frontend-only": "cd Frontend && cross-env PORT=3000 npm run dev",
     "build": "npm run build:backend && npm run build:frontend",
     "build:backend": "cd backend && npm run build",
-    "build:frontend": "cd front && npm run build",
-    "install:all": "npm install && cd backend && npm install && cd ../front && npm install",
+    "build:frontend": "cd Frontend && npm run build",
+    "install:all": "npm install && cd backend && npm install && cd ../Frontend && npm install",
     "setup": "npm run install:all && cd backend && npm run db:setup",
     "start": "cd backend && npm start",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "cd backend && npm test",
-    "test:frontend": "cd front && npm test",
+    "test:frontend": "cd Frontend && npm test",
     "clean": "npm run clean:node_modules && npm run clean:build",
-    "clean:node_modules": "rimraf node_modules && cd backend && rimraf node_modules && cd ../front && rimraf node_modules",
-    "clean:build": "cd front && rimraf dist && cd ../backend && rimraf dist"
+    "clean:node_modules": "rimraf node_modules && cd backend && rimraf node_modules && cd ../Frontend && rimraf node_modules",
+    "clean:build": "cd Frontend && rimraf dist && cd ../backend && rimraf dist"
   },
   "keywords": [
     "petshop",
@@ -39,10 +39,13 @@
     "rimraf": "^6.0.1"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^3.7.0",
+    "@stripe/stripe-js": "^7.4.0",
     "culqi-node": "^2.1.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "multer": "^2.0.1",
+    "stripe": "^18.3.0",
     "sweetalert2": "^11.22.1",
     "tailwind-scrollbar": "^4.0.2"
   },

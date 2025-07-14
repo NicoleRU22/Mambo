@@ -22,8 +22,8 @@ import Swal from "sweetalert2";
 
 import { EditProductModal } from "./EditProductModal";
 import { AddProductModal } from "./AddProductModal";
-import { ViewProductModal } from "./ViewProductModal"; // NUEVO
 import { productService, categoryService } from "@/services/api";
+import { ViewProductModal } from "./ViewProductModal";
 
 interface Product {
   id: number;
@@ -103,7 +103,7 @@ export const ProductsTable = () => {
         petType: updatedProduct.petType,
         images: updatedProduct.images,
         sizes: updatedProduct.sizes,
-        colors: updatedProduct.colors, 
+        colors: updatedProduct.colors,
         categoryId: updatedProduct.categoryId,
         isActive: updatedProduct.isActive,
       });

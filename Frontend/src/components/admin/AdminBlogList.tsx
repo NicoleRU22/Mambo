@@ -16,9 +16,11 @@ export const AdminBlogList = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
   const fetchPosts = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/blog");
+      const res = await fetch(`${API_URL}/blog`);
       const data = await res.json();
       setPosts(data);
     } catch (err) {
@@ -44,7 +46,7 @@ export const AdminBlogList = () => {
     if (!confirm.isConfirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:4000/api/blog/${id}`, {
+      const res = await fetch(`${API_URL}/blog/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Error al eliminar");

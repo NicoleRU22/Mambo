@@ -18,11 +18,13 @@ const AdminContact = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token"); // O desde tu contexto Auth
 
-      const res = await fetch("http://localhost:4000/api/contact/messages", {
+      const res = await fetch(`${API_URL}/contact/messages`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -43,7 +45,7 @@ const AdminContact = () => {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `http://localhost:4000/api/contact/messages/reply/${id}`,
+        `${API_URL}/contact/messages/reply/${id}`,
         {
           method: "POST",
           headers: {

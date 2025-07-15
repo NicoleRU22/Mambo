@@ -10,6 +10,7 @@ import Swal from "sweetalert2";
 
 const Contact = () => {
   const [loading, setLoading] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -114,7 +115,7 @@ const Contact = () => {
                 setLoading(true);
                 try {
                   const res = await fetch(
-                    "http://localhost:4000/api/contact/contact",
+                    `${API_URL}/contact/contact`,
                     {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },

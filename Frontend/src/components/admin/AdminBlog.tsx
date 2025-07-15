@@ -66,7 +66,8 @@ export const AdminBlog = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:4000/api/blog", {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+      const res = await fetch(`${API_URL}/blog`, {
         method: "POST",
         body: payload,
       });

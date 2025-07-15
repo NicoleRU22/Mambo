@@ -20,7 +20,14 @@ const AdminContact = () => {
 
   const fetchMessages = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/messages");
+      const token = localStorage.getItem("token"); // O desde tu contexto Auth
+
+      const res = await fetch("http://localhost:4000/api/contact/messages", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       if (!res.ok) throw new Error("Error al obtener mensajes");
       const data = await res.json();
       setMessages(data);
@@ -33,10 +40,15 @@ const AdminContact = () => {
 
   const handleAutoReply = async (id: number, email: string) => {
     try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch(
-        `http://localhost:4000/api/messages/reply/${id}`,
+        `http://localhost:4000/api/contact/messages/reply/${id}`,
         {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
       if (!res.ok) throw new Error("Error al enviar respuesta");

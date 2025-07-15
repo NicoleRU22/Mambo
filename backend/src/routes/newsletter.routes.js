@@ -1,23 +1,10 @@
-
-// 📁 backend/routes/newsletter.routes.ts
-import express from 'express';
-import { body, param } from 'express-validator';
-import {
-  subscribeNewsletter,
-  getSubscribers,
-  unsubscribeNewsletter
-} from '../controllers/newsletter.controller';
+// backend/src/routes/newsletter.routes.js
+import express from "express";
+import { subscribe } from "../controllers/newsletter.controller.js";
 
 const router = express.Router();
 
-router.post(
-  '/',
-  body('name').notEmpty(),
-  body('email').isEmail(),
-  subscribeNewsletter
-);
-
-router.get('/', getSubscribers);
-router.delete('/:id', param('id').notEmpty(), unsubscribeNewsletter);
+// POST /api/newsletter
+router.post("/newsletter", subscribe);
 
 export default router;

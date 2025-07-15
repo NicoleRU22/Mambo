@@ -8,15 +8,14 @@ import path from "path";
 import { fileURLToPath } from "url";
 import categoryRoutes from "./routes/categories.js";
 import returnRoutes from "./routes/returnRequests.js";
-import newsletterRoutes from "./routes/newsletter.js";
 import blogRoutes from "./routes/blog.js";
 import searchRoutes from "./routes/searchLogs.js";
 import offersRoutes from "./routes/offers.js";
 import healthRoutes from "./routes/health.js";
 import returnsRoutes from "./routes/returns.js";
-import user from "./routes/users.js";
 import contactRoutes from "./routes/contact.routes.js";
-import paymentRoutes from './routes/payments.js';
+import paymentRoutes from "./routes/payments.js";
+import newsletterRoutes from "./routes/newsletter.routes.js";
 
 // Variables para rutas absolutas en ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -68,7 +67,7 @@ app.use(morgan("combined"));
 // Body parsing
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use("/api/payments", paymentRoutes);  
+app.use("/api/payments", paymentRoutes);
 
 // Static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -95,7 +94,9 @@ app.use("/api/health", healthRoutes);
 app.use("/api/returns", returnsRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api", contactRoutes);
+app.use("/api", newsletterRoutes);
 
 // Health check (mantener para compatibilidad)
 app.get("/api/health", (req, res) => {
@@ -122,7 +123,6 @@ app.use((err, req, res, next) => {
         : "Internal server error",
   });
 });
-
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

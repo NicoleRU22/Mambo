@@ -31,7 +31,11 @@ const Footer = () => {
               <Button 
                 variant="secondary" 
                 className="bg-secondary-500 hover:bg-secondary-600 text-white px-6 disabled:opacity-50"
-                onClick={() => navigate('/newsletter')}
+                onClick={() => {
+                  if (isEmailValid) {
+                    navigate('/newsletter', { state: { email } });
+                  }
+                }}
                 disabled={!isEmailValid}
               >
                 Suscribirse

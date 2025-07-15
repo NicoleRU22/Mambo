@@ -84,15 +84,14 @@ model Order {
   shippingPhone   String
   paymentMethod   PaymentMethod
   paymentStatus   PaymentStatus @default(PENDING)
-  paymentIntentId String?      
   notes           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   userId          Int?
+  paymentIntentId String?
   user            User?         @relation(fields: [userId], references: [id])
   orderItems      OrderItem[]
 }
-
 
 model OrderItem {
   id           Int      @id @default(autoincrement())
@@ -138,6 +137,24 @@ model BlogPost {
   category  String
   image     String
   status    String   @default("PUBLISHED")
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String
+  subject      String?
+  message      String
+  response     String?
+  respondedAt  DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model NewsletterSubscriber {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  email     String   @unique
   createdAt DateTime @default(now())
 }
 

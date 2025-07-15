@@ -52,4 +52,39 @@ router.post("/reply/:id", async (req, res) => {
   }
 });
 
+router.post("/contact", async (req, res) => {
+  const { name, email, subject, message } = req.body;
+  console.log("Datos recibidos:", req.body);
+
+  if (!name || !email || !subject || !message) {
+    return res.status(400).json({ error: "Todos los campos son obligatorios" });
+  }
+
+  try {
+    const saved = await prisma.contactMessage.create({
+      data: {
+        name,
+        email,
+        subject,
+        message,
+      },
+    });
+
+    // Enviar email de confirmación (opcional)
+    await sendMail(
+      email,
+      `Hemos recibido tu mensaje: ${subject}`,
+      `<p>Hola ${name},</p><p>Gracias por contactarnos. Hemos recibido tu mensaje:</p><blockquote>${message}</blockquote><p>Pronto te responderemos.</p>`
+    );
+
+    res.status(201).json({
+      message: "Mensaje recibido correctamente",
+      data: saved,
+    });
+  } catch (error) {
+    console.error("Error al guardar o enviar correo:", error);
+    res.status(500).json({ error: "Error interno al guardar el mensaje" });
+  }
+});
+
 export default router;

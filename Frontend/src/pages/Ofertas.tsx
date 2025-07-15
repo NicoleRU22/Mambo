@@ -100,9 +100,7 @@ const Ofertas = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: newsletterEmail }),
       });
-
       const result = await response.json();
-
       if (response.ok) {
         Swal.fire({
           title: "¡Suscripción exitosa!",
@@ -113,9 +111,9 @@ const Ofertas = () => {
         setNewsletterEmail("");
       } else {
         Swal.fire({
-          title: "Ya estás suscrito",
+          title: result.error === 'Este email ya está suscrito al newsletter' ? "Ya estás suscrito" : "Error",
           text: result.error || "Este correo ya está registrado",
-          icon: "info",
+          icon: result.error === 'Este email ya está suscrito al newsletter' ? "info" : "error",
           confirmButtonText: "Aceptar",
         });
       }

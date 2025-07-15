@@ -710,7 +710,7 @@ const Checkout = () => {
                       cartItems={cartItems}
                       total={total}
                       shippingForm={{
-                        userId: user.id,
+                        userId: user.id,                        
                         firstName: shippingForm.firstName,
                         lastName: shippingForm.lastName,
                         email: shippingForm.email,

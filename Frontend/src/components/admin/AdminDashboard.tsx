@@ -41,6 +41,7 @@ interface DashboardStats {
   monthly_orders: number;
   monthly_sales: string;
   orders_by_status: Array<{ status: string; count: number }>;
+  sales_by_month: Array<{ name: string; ventas: number; pedidos: number }>;
 }
 
 interface UserStats {
@@ -102,33 +103,64 @@ const AdminDashboard = () => {
     loadDashboardData();
   }, []);
 
-  // Datos de ventas mensuales (ejemplo - en producción vendrían de la API)
-  const salesData = [
-    { name: "Ene", ventas: 4000, pedidos: 240 },
-    { name: "Feb", ventas: 3000, pedidos: 139 },
-    { name: "Mar", ventas: 2000, pedidos: 980 },
-    { name: "Abr", ventas: 2780, pedidos: 390 },
-    { name: "May", ventas: 1890, pedidos: 480 },
-    { name: "Jun", ventas: 2390, pedidos: 380 },
-  ];
-
-  // Datos de categorías (ejemplo - en producción vendrían de la API)
-  const categoryData = [
-    { name: "Ropas", value: 400, color: "#8B5CF6" },
-    { name: "Juguetes", value: 300, color: "#06B6D4" },
-    { name: "Alimento", value: 200, color: "#10B981" },
-    { name: "Accesorios", value: 100, color: "#F59E0B" },
-  ];
-
   // Estadísticas dinámicas basadas en datos reales
   const stats = [
     {
       title: "Usuarios",
-      value: userStats ? userStats.summary.total_users.toString() : "0",
-      change: "+12%",
+      value: userStats?.summary?.total_users?.toString() || "0",
+      change:
+        userStats?.summary?.monthly_users !== undefined
+          ? `+${userStats.summary.monthly_users}%`
+          : "0%",
       icon: Users,
       color: "text-orange-600",
     },
+    {
+      title: "Pedidos",
+      value: orderStats?.total_orders?.toString() || "0",
+      change:
+        orderStats?.monthly_orders !== undefined
+          ? `+${orderStats.monthly_orders}%`
+          : "0%",
+      icon: ShoppingCart,
+      color: "text-blue-600",
+    },
+    {
+      title: "Ventas",
+      value: orderStats ? orderStats.total_sales : "$0",
+      change: orderStats ? `+${orderStats.monthly_sales}` : "0%",
+      icon: DollarSign,
+      color: "text-green-600",
+    },
+    {
+      title: "Productos",
+      value: productCount.toString(),
+      change: "",
+      icon: Package,
+      color: "text-purple-600",
+    },
+  ];
+
+  // Gráfico de ventas mensuales (si el backend lo provee)
+  const salesData =
+    orderStats && orderStats.sales_by_month
+      ? orderStats.sales_by_month
+      : [
+          { name: "Ene", ventas: 0, pedidos: 0 },
+          { name: "Feb", ventas: 0, pedidos: 0 },
+          { name: "Mar", ventas: 0, pedidos: 0 },
+          { name: "Abr", ventas: 0, pedidos: 0 },
+          { name: "May", ventas: 0, pedidos: 0 },
+          { name: "Jun", ventas: 0, pedidos: 0 },
+        ];
+
+  // Gráfico de categorías (si el backend lo provee)
+  // Si tienes un endpoint real para categorías con conteo, reemplaza aquí
+  const categoryData = [
+    { name: "Ropas", value: 0, color: "#8B5CF6" },
+    { name: "Juguetes", value: 0, color: "#06B6D4" },
+    { name: "Alimento", value: 0, color: "#10B981" },
+    { name: "Accesorios", value: 0, color: "#F59E0B" },
   ];
 
   const topProducts = [

@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Bell, Gift, Tag, CheckCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { newsletterService } from '@/services/api';
 
 const Newsletter = () => {
   const navigate = useNavigate();
@@ -67,12 +68,8 @@ const Newsletter = () => {
     setLoading(true);
 
     try {
-      // Aquí iría la llamada a la API para suscribir al newsletter
-      // await newsletterService.subscribe({ email, name, acceptMarketing });
-      
-      // Simular delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      // Llamada real al backend
+      await newsletterService.subscribe({ email, name, acceptMarketing });
       Swal.fire({
         title: '¡Suscripción Exitosa!',
         text: 'Gracias por suscribirte a nuestro newsletter. Pronto recibirás nuestras mejores ofertas.',
@@ -84,10 +81,14 @@ const Newsletter = () => {
         setAcceptMarketing(false);
         setAcceptTerms(false);
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      let msg = 'Hubo un problema al suscribirte. Inténtalo de nuevo.';
+      if (typeof error === 'object' && error && 'error' in error) {
+        msg = (error as { error: string }).error;
+      }
       Swal.fire({
         title: 'Error',
-        text: 'Hubo un problema al suscribirte. Inténtalo de nuevo.',
+        text: msg,
         icon: 'error',
         confirmButtonText: 'Aceptar'
       });

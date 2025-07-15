@@ -1,13 +1,15 @@
 // src/pages/Contact.tsx
-import React from "react";
+import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Phone, Smartphone, Mail, MapPin } from "lucide-react";
+import Swal from "sweetalert2";
 
 const Contact = () => {
+  const [loading, setLoading] = useState(false);
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -109,23 +111,44 @@ const Contact = () => {
                     form.elements.namedItem("mensaje") as HTMLTextAreaElement
                   ).value,
                 };
-
+                setLoading(true);
                 try {
-                  const res = await fetch("/api/contact", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data),
-                  });
-
+                  const res = await fetch(
+                    "http://localhost:4000/api/contact/contact",
+                    {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(data),
+                      credentials: "include", // si usas cookies o autenticación
+                    }
+                  );
                   if (res.ok) {
-                    alert("✅ Tu mensaje ha sido enviado");
+                    Swal.fire({
+                      title: "¡Mensaje enviado!",
+                      text: "Gracias por contactarnos. Te responderemos pronto.",
+                      icon: "success",
+                      confirmButtonText: "Aceptar",
+                    });
                     form.reset();
                   } else {
-                    alert("❌ Hubo un problema al enviar tu mensaje");
+                    const result = await res.json();
+                    Swal.fire({
+                      title: "Error",
+                      text:
+                        result.error || "Hubo un problema al enviar tu mensaje",
+                      icon: "error",
+                      confirmButtonText: "Aceptar",
+                    });
                   }
                 } catch (error) {
-                  console.error("Error al enviar contacto", error);
-                  alert("❌ Error del servidor");
+                  Swal.fire({
+                    title: "Error",
+                    text: "Error del servidor",
+                    icon: "error",
+                    confirmButtonText: "Aceptar",
+                  });
+                } finally {
+                  setLoading(false);
                 }
               }}
             >
@@ -176,8 +199,9 @@ const Contact = () => {
               <Button
                 type="submit"
                 className="mt-2 w-full bg-primary-600 hover:bg-primary-700"
+                disabled={loading}
               >
-                Enviar Mensaje
+                {loading ? "Enviando..." : "Enviar Mensaje"}
               </Button>
             </form>
           </div>

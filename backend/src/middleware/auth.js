@@ -25,6 +25,7 @@ export const authenticateToken = async (req, res, next) => {
     }
 
     req.user = user;
+    console.log('[AUTH] Usuario autenticado:', req.user);
     next();
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
@@ -39,12 +40,12 @@ export const authenticateToken = async (req, res, next) => {
 };
 
 export const requireAdmin = (req, res, next) => {
-  console.log("Usuario autenticado:", req.user); // 🔍
-
-  if (req.user.role.toLowerCase() !== "admin") {
-    return res.status(403).json({ error: "Admin access required" });
+  console.log('[AUTH] Verificando rol de usuario:', req.user && req.user.role);
+  if (req.user && req.user.role === "ADMIN") {
+    return next();
   }
-  next();
+  console.log('[AUTH] Acceso denegado. Usuario no es admin.');
+  return res.status(403).json({ error: "Acceso solo para administradores" });
 };
 
 export const optionalAuth = async (req, res, next) => {

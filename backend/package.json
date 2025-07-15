@@ -71,6 +71,7 @@
     "multer": "^2.0.1-lts.1",
     "nanoid": "^5.1.5",
     "next-themes": "^0.3.0",
+    "nodemailer": "^7.0.5",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",

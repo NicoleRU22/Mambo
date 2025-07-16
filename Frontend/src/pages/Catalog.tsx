@@ -164,7 +164,7 @@ const Catalog = () => {
       setAddingToCart(productId);
       // ahora enviamos size y color al back
       await cartService.addToCart(productId, quantity, size, color);
-      await loadCartCount();      
+      await loadCartCount();
     } catch (error: unknown) {
       console.error("Error al agregar al carrito:", error);
       let msg = "No se pudo agregar al carrito";
@@ -477,9 +477,9 @@ const Catalog = () => {
 
                         const imageSrc =
                           mappedType === "perro"
-                            ? "/guia-tallas.png"
+                            ? "https://mercury.vtexassets.com/arquivos/ids/20820514-800-800?v=638829699078830000&width=800&height=800&aspect=true"
                             : mappedType === "gato"
-                            ? "/medidas_gatos.webp"
+                            ? "https://i0.wp.com/cat-oh.com/wp-content/uploads/2020/10/medidas_gatos.jpg?fit=800%2C800&ssl=1"
                             : null;
 
                         const { value: formData } = await Swal.fire({

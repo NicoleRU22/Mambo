@@ -266,8 +266,8 @@ const ProductDetail = () => {
             <img
               src={
                 (product.pet_type || product.petType)?.toLowerCase() === "cat"
-                  ? "/medidas_gatos.webp"
-                  : "/guia-tallas.png"
+                  ? "https://i0.wp.com/cat-oh.com/wp-content/uploads/2020/10/medidas_gatos.jpg?fit=800%2C800&ssl=1"
+                  : "https://mercury.vtexassets.com/arquivos/ids/20820514-800-800?v=638829699078830000&width=800&height=800&aspect=true"
               }
               alt="Guía de Tallas"
               className="w-full max-h-[400px] object-contain"

@@ -66,7 +66,7 @@ const Header = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
             <div className="w-18 h-14">
-              <img src="/logo2.jpeg" alt="Logo Mambo Petshop" className="w-full h-full object-cover" />
+              <img src="https://i.pinimg.com/736x/d1/10/9e/d1109ea7a5b865ea67891b6cab2fc4a2.jpg" alt="Logo Mambo Petshop" className="w-full h-full object-cover" />
             </div>
           </div>
 

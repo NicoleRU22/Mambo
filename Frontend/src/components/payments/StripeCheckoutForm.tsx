@@ -41,7 +41,7 @@ export default function StripeCheckoutForm({
 
     // 🚀 1) Crear PaymentIntent
     const resp = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL}/payments/create-payment-intent`,
+      `${import.meta.env.VITE_API_URL}/payments/create-payment-intent`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

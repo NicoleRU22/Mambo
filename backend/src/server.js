@@ -44,19 +44,7 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Permitir llamadas sin origin (como en Postman)
-      if (!origin) return callback(null, true);
-
-      // Limpiar slashes finales para comparar correctamente
-      const cleanOrigin = origin.replace(/\/$/, "");
-
-      if (allowedOrigins.includes(cleanOrigin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: allowedOrigins,
     credentials: true,
   })
 );
@@ -92,11 +80,8 @@ app.use("/api/search", searchRoutes);
 app.use("/api/offers", offersRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/returns", returnsRoutes);
-app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/payments", paymentRoutes);
-app.use("/api", contactRoutes);
-app.use("/api", newsletterRoutes);
 
 // Health check (mantener para compatibilidad)
 app.get("/api/health", (req, res) => {

@@ -1,7 +1,7 @@
 // src/services/stripe.js
 import Stripe from 'stripe';
 import dotenv from 'dotenv';
-dotenv.config();  // ¡Justo al principio!
+dotenv.config();  
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2022-11-15',

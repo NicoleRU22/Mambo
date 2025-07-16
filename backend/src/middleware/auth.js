@@ -7,7 +7,9 @@ const prisma = new PrismaClient();
 export const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : req.cookies?.token; // 👈 buscar también en cookie
 
     if (!token) {
       return res.status(401).json({ error: "Access token required" });
@@ -25,7 +27,7 @@ export const authenticateToken = async (req, res, next) => {
     }
 
     req.user = user;
-    console.log('[AUTH] Usuario autenticado:', req.user);
+    console.log("[AUTH] Usuario autenticado:", req.user);
     next();
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
@@ -40,11 +42,11 @@ export const authenticateToken = async (req, res, next) => {
 };
 
 export const requireAdmin = (req, res, next) => {
-  console.log('[AUTH] Verificando rol de usuario:', req.user && req.user.role);
+  console.log("[AUTH] Verificando rol de usuario:", req.user && req.user.role);
   if (req.user && req.user.role === "ADMIN") {
     return next();
   }
-  console.log('[AUTH] Acceso denegado. Usuario no es admin.');
+  console.log("[AUTH] Acceso denegado. Usuario no es admin.");
   return res.status(403).json({ error: "Acceso solo para administradores" });
 };
 

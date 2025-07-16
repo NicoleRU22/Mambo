@@ -39,7 +39,7 @@ router.post(
           name,
           email,
           password: hashedPassword,
-          role: "USER", 
+          role: "USER",
         },
         select: {
           id: true,
@@ -107,6 +107,12 @@ router.post("/login", validateLogin, async (req, res) => {
 
     // Remover contraseña de la respuesta
     const { password: _, ...userWithoutPassword } = user;
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+    });
 
     res.json({
       message: "Login exitoso",

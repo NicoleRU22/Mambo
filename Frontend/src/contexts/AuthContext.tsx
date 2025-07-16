@@ -53,18 +53,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuth = async () => {
       setIsLoading(true);
       try {
-        const storedToken = localStorage.getItem("token");
         const res = await fetch(`${API_URL}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${storedToken}`,
-          },
+          method: "GET",
+          credentials: "include", 
         });
 
         const data = await res.json();
 
         if (res.ok && data.user) {
           setUser(data.user);
-          // Solo redirige si ya estás en login/register
           if (
             window.location.pathname === "/auth/login" ||
             window.location.pathname === "/auth/register"
@@ -116,7 +113,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               }))
             : [];
           if (items.length > 0) {
-            await import('../services/api').then(({ cartService }) => cartService.syncCart(items));
+            await import("../services/api").then(({ cartService }) =>
+              cartService.syncCart(items)
+            );
             localStorage.removeItem("guest_cart");
           }
         }

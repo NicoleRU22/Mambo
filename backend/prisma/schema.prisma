@@ -7,23 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int        @id @default(autoincrement())
-  name      String
-  email     String     @unique
-  password  String
-  role      Role       @default(USER)
-  phone     String?
-  address   String?
-  city      String?
-  state     String?
-  zipCode   String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  cartItems CartItem[]
-  orders    Order[]
-  reviews   Review[]
-  wishlist  Wishlist[]
+model BlogPost {
+  id        Int      @id @default(autoincrement())
+  title     String
+  excerpt   String
+  content   String
+  date      DateTime
+  category  String
+  image     String
+  status    String   @default("PUBLISHED")
+  createdAt DateTime @default(now())
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  quantity  Int
+  size      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  userId    Int
+  productId Int
+  colors    String?
+  Product   Product  @relation(fields: [productId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
 }
 
 model Category {
@@ -32,44 +38,25 @@ model Category {
   description String?
   image       String?
   createdAt   DateTime  @default(now())
-  products    Product[]
+  Product     Product[]
 }
 
-model Product {
-  id            Int         @id @default(autoincrement())
-  name          String      @unique
-  description   String?
-  price         Float
-  originalPrice Float?
-  stock         Int         @default(0)
-  petType       PetType
-  images        String[]
-  sizes         String[]
-  rating        Float       @default(0)
-  reviewsCount  Int         @default(0)
-  isActive      Boolean     @default(true)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  categoryId    Int?
-  colors        String[]
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
-  category      Category?   @relation(fields: [categoryId], references: [id])
-  reviews       Review[]
-  wishlist      Wishlist[]
+model ContactMessage {
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String
+  subject     String?
+  message     String
+  response    String?
+  respondedAt DateTime?
+  createdAt   DateTime  @default(now())
 }
 
-model CartItem {
+model NewsletterSubscriber {
   id        Int      @id @default(autoincrement())
-  quantity  Int
-  size      String?
+  name      String?
+  email     String   @unique
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    Int
-  productId Int
-  colors    String?
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Order {
@@ -86,11 +73,11 @@ model Order {
   paymentStatus   PaymentStatus @default(PENDING)
   notes           String?
   createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  updatedAt       DateTime
   userId          Int?
   paymentIntentId String?
-  user            User?         @relation(fields: [userId], references: [id])
-  orderItems      OrderItem[]
+  User            User?         @relation(fields: [userId], references: [id])
+  OrderItem       OrderItem[]
 }
 
 model OrderItem {
@@ -102,8 +89,32 @@ model OrderItem {
   createdAt    DateTime @default(now())
   orderId      Int
   productId    Int?
-  order        Order    @relation(fields: [orderId], references: [id])
-  product      Product? @relation(fields: [productId], references: [id])
+  Order        Order    @relation(fields: [orderId], references: [id])
+  Product      Product? @relation(fields: [productId], references: [id])
+}
+
+model Product {
+  id            Int         @id @default(autoincrement())
+  name          String      @unique
+  description   String?
+  price         Float
+  originalPrice Float?
+  stock         Int         @default(0)
+  petType       PetType
+  images        String[]
+  sizes         String[]
+  rating        Float       @default(0)
+  reviewsCount  Int         @default(0)
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime
+  categoryId    Int?
+  colors        String[]
+  CartItem      CartItem[]
+  OrderItem     OrderItem[]
+  Category      Category?   @relation(fields: [categoryId], references: [id])
+  Review        Review[]
+  Wishlist      Wishlist[]
 }
 
 model Review {
@@ -113,8 +124,27 @@ model Review {
   createdAt DateTime @default(now())
   userId    Int
   productId Int
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  Product   Product  @relation(fields: [productId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String
+  email     String     @unique
+  password  String
+  role      Role       @default(USER)
+  phone     String?
+  address   String?
+  city      String?
+  state     String?
+  zipCode   String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  CartItem  CartItem[]
+  Order     Order[]
+  Review    Review[]
+  Wishlist  Wishlist[]
 }
 
 model Wishlist {
@@ -122,53 +152,10 @@ model Wishlist {
   createdAt DateTime @default(now())
   userId    Int
   productId Int
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  Product   Product  @relation(fields: [productId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, productId])
-}
-
-model BlogPost {
-  id        Int      @id @default(autoincrement())
-  title     String
-  excerpt   String
-  content   String
-  date      DateTime
-  category  String
-  image     String
-  status    String   @default("PUBLISHED")
-  createdAt DateTime @default(now())
-}
-
-model ContactMessage {
-  id           Int       @id @default(autoincrement())
-  name         String
-  email        String
-  subject      String?
-  message      String
-  response     String?
-  respondedAt  DateTime?
-  createdAt    DateTime  @default(now())
-}
-
-model NewsletterSubscriber {
-  id        Int      @id @default(autoincrement())
-  name      String?
-  email     String   @unique
-  createdAt DateTime @default(now())
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum PetType {
-  DOG
-  CAT
-  BIRD
-  FISH
-  OTHER
 }
 
 enum OrderStatus {
@@ -177,6 +164,15 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+model Offer {
+  id        Int      @id @default(autoincrement())
+  title     String
+  discount  Float
+  image     String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 }
 
 enum PaymentMethod {
@@ -189,4 +185,17 @@ enum PaymentStatus {
   PENDING
   PAID
   FAILED
+}
+
+enum PetType {
+  DOG
+  CAT
+  BIRD
+  FISH
+  OTHER
+}
+
+enum Role {
+  USER
+  ADMIN
 }

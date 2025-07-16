@@ -104,7 +104,7 @@ const Register = () => {
           <CardHeader className="text-center pb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 transition-transform transform hover:rotate-12">
               <img
-                src="/logo.jpeg"
+                src="https://i.pinimg.com/736x/97/42/c1/9742c1036aa6d57acaf7250eb365ff82.jpg"
                 alt="Logo"
                 className="w-full h-full object-cover rounded-full"
               />

@@ -55,7 +55,7 @@ export const AdminSidebar = ({ activeSection, setActiveSection }: SidebarProps) 
       <div className="p-4 border-b flex items-center space-x-3">
         <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary-600">
           <img
-            src="/logo.jpeg"
+            src="https://i.pinimg.com/736x/97/42/c1/9742c1036aa6d57acaf7250eb365ff82.jpg"
             alt="Logo Mambo"
             className="w-full h-full object-cover"
           />

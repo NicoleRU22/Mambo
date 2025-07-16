@@ -3,15 +3,15 @@ import prisma from "../lib/db.js";
 
 const router = express.Router();
 
-// ✅ Obtener todas las categorías
+// ✅ Obtener todas las categorías con conteo de productos
 router.get("/", async (req, res) => {
   try {
     const categories = await prisma.category.findMany({
       include: {
         _count: {
-          select: { products: true }
-        }
-      }
+          select: { products: true },
+        },
+      },
     });
     res.json(categories);
   } catch (error) {
@@ -20,17 +20,20 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ✅ Crear categoría (solo admin en el futuro)
+// ✅ Crear categoría
 router.post("/", async (req, res) => {
-  const { name, description, image_url, parent_id } = req.body;
+  const { name, description, image } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ message: "El nombre es obligatorio" });
+  }
 
   try {
     const category = await prisma.category.create({
       data: {
         name,
         description,
-        image_url,
-        parent_id,
+        image,
       },
     });
     res.status(201).json(category);
@@ -43,7 +46,7 @@ router.post("/", async (req, res) => {
 // ✅ Actualizar categoría
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  const { name, description, image_url, parent_id } = req.body;
+  const { name, description, image } = req.body;
 
   try {
     const updated = await prisma.category.update({
@@ -51,8 +54,7 @@ router.put("/:id", async (req, res) => {
       data: {
         name,
         description,
-        image_url,
-        parent_id,
+        image,
       },
     });
     res.json(updated);
@@ -67,9 +69,24 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    // Verificar si hay productos relacionados
+    const productCount = await prisma.product.count({
+      where: { categoryId: parseInt(id) },
+    });
+
+    if (productCount > 0) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "No se puede eliminar una categoría que tiene productos asociados.",
+        });
+    }
+
     await prisma.category.delete({
       where: { id: parseInt(id) },
     });
+
     res.status(204).end();
   } catch (error) {
     console.error("Error al eliminar categoría:", error);

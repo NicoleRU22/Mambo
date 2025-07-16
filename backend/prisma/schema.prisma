@@ -38,7 +38,7 @@ model Category {
   description String?
   image       String?
   createdAt   DateTime  @default(now())
-  Product     Product[]
+  products    Product[] 
 }
 
 model ContactMessage {

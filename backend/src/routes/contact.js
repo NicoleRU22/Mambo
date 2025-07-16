@@ -8,7 +8,7 @@ const router = express.Router();
 // GET /api/messages — listas todos los mensajes
 router.get("/", async (req, res) => {
   try {
-    const messages = await prisma.message.findMany({
+    const messages = await prisma.contactMessage.findMany({
       orderBy: { createdAt: "desc" },
     });
     res.json(messages);
@@ -22,7 +22,7 @@ router.get("/", async (req, res) => {
 router.post("/reply/:id", async (req, res) => {
   const id = parseInt(req.params.id, 10);
   try {
-    const msg = await prisma.message.findUnique({ where: { id } });
+    const msg = await prisma.contactMessage.findUnique({ where: { id } });
     if (!msg) {
       return res.status(404).json({ error: "Mensaje no encontrado" });
     }
